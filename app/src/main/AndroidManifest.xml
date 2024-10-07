@@ -18,15 +18,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VideoGamesRF"
         tools:targetApi="31">
+
+        <!-- Configuración de SplashActivity como pantalla de inicio -->
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- MainActivity configurada para mostrarse después del Splash -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true">
+        </activity>
+
+    </application>
 </manifest>
