@@ -1,4 +1,3 @@
-```markdown
 # GeoRocksUNAM
 
 GeoRocksUNAM es una aplicación Android para explorar y conocer distintos tipos de rocas. La aplicación proporciona detalles específicos sobre cada roca, incluyendo sus características físicas, propiedades químicas y lugares donde se encuentran.
@@ -30,7 +29,7 @@ GeoRocksUNAM es una aplicación Android para explorar y conocer distintos tipos 
 
 ## Ejemplo de Uso
 
-![GeoRocksUNAM Example](georocks.gif)
+![GeoRocksUNAM Example](./georocks.gif)
 
 ## Instalación
 
@@ -38,18 +37,3 @@ GeoRocksUNAM es una aplicación Android para explorar y conocer distintos tipos 
 
    ```bash
    git clone https://github.com/EnigmaK9/GeoRocksUNAM.git
-   ```
-
-2. Abre el proyecto en Android Studio.
-
-3. Sincroniza las dependencias y ejecuta la aplicación en un emulador o dispositivo real.
-
-## Contribuciones
-
-Las contribuciones son bienvenidas. Si tienes sugerencias o mejoras, por favor abre un issue o un pull request.
-
----
-
-© 2024 GeoRocksUNAM. Todos los derechos reservados.
-```
-
