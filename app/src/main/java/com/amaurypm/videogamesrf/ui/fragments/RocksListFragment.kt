@@ -14,7 +14,7 @@ import com.amaurypm.videogamesrf.data.remote.model.RockDto
 import com.amaurypm.videogamesrf.data.remote.model.RockDetailDto
 import com.amaurypm.videogamesrf.databinding.FragmentRocksListBinding
 import com.amaurypm.videogamesrf.ui.adapters.RocksAdapter
-import com.amaurypm.videogamesrf.ui.adapters.RocksViewHolder // Importa RocksViewHolder
+import com.amaurypm.videogamesrf.ui.adapters.RocksViewHolder
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -46,15 +46,12 @@ class RocksListFragment : Fragment() {
                     response.body()?.let { rocks ->
                         Log.d("RocksListFragment", "Lista de rocas recibida con éxito: $rocks")
 
-                        // Configura el RecyclerView con el adaptador
+                        // Configura el RecyclerView con el adaptador y el callback correcto
                         binding.rvRocks.apply {
                             layoutManager = LinearLayoutManager(requireContext())
-                            adapter = RocksAdapter(rocks, { rock ->
-                                // Aquí puedes implementar cualquier acción al hacer clic en la roca.
-                            }, { rockId, viewHolder ->
-                                // Este callback carga los detalles adicionales
+                            adapter = RocksAdapter(rocks) { rockId, viewHolder ->
                                 loadRockDetails(rockId, viewHolder)
-                            })
+                            }
                         }
                     } ?: run {
                         Log.e("RocksListFragment", "Respuesta vacía del servidor")
@@ -71,26 +68,24 @@ class RocksListFragment : Fragment() {
         })
     }
 
-    private fun loadRockDetails(rockId: String?, viewHolder: RocksViewHolder) {
-        rockId?.let { id ->
-            repository.getRockDetail(id).enqueue(object : Callback<RockDetailDto> {
-                override fun onResponse(call: Call<RockDetailDto>, response: Response<RockDetailDto>) {
-                    if (response.isSuccessful) {
-                        val rockDetail = response.body()
-                        Log.d("RocksListFragment", "Detalles de la roca - Type: ${rockDetail?.aMemberOf}, Color: ${rockDetail?.color}")
+    private fun loadRockDetails(rockId: String, viewHolder: RocksViewHolder) {
+        repository.getRockDetail(rockId).enqueue(object : Callback<RockDetailDto> {
+            override fun onResponse(call: Call<RockDetailDto>, response: Response<RockDetailDto>) {
+                if (response.isSuccessful) {
+                    val rockDetail = response.body()
+                    Log.d("RocksListFragment", "Detalles de la roca - Type: ${rockDetail?.aMemberOf}, Color: ${rockDetail?.color}")
 
-                        // Actualizar el ViewHolder con los detalles adicionales
-                        rockDetail?.let { viewHolder.updateDetails(it.aMemberOf, it.color) }
-                    } else {
-                        Log.e("RocksListFragment", "Error al obtener detalles de la roca: ${response.code()} ${response.message()}")
-                    }
+                    // Actualizar el ViewHolder con los detalles adicionales
+                    rockDetail?.let { viewHolder.updateDetails(it.aMemberOf, it.color) }
+                } else {
+                    Log.e("RocksListFragment", "Error al obtener detalles de la roca: ${response.code()} ${response.message()}")
                 }
+            }
 
-                override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
-                    Log.e("RocksListFragment", "Error retrieving rock details", t)
-                }
-            })
-        }
+            override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
+                Log.e("RocksListFragment", "Error retrieving rock details", t)
+            }
+        })
     }
 
     override fun onDestroyView() {

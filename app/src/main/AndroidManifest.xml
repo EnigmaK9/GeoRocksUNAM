@@ -19,7 +19,7 @@
         android:theme="@style/Theme.VideoGamesRF"
         tools:targetApi="31">
 
-        <!-- Configuración de SplashActivity como pantalla de inicio -->
+        <!-- SplashActivity como pantalla de inicio -->
         <activity
             android:name=".ui.SplashActivity"
             android:exported="true">
@@ -29,9 +29,15 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity configurada para mostrarse después del Splash -->
+        <!-- MainActivity configurada para la lista de rocas -->
         <activity
             android:name=".ui.MainActivity"
+            android:exported="true">
+        </activity>
+
+        <!-- RockDetailActivity para mostrar los detalles de la roca -->
+        <activity
+            android:name=".ui.activities.RockDetailActivity"
             android:exported="true">
         </activity>
 

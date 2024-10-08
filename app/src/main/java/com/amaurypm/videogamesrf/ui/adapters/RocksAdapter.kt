@@ -1,14 +1,15 @@
 package com.amaurypm.videogamesrf.ui.adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.amaurypm.videogamesrf.data.remote.model.RockDto
 import com.amaurypm.videogamesrf.databinding.RockElementBinding
+import com.amaurypm.videogamesrf.ui.activities.RockDetailActivity
 
 class RocksAdapter(
     private val rocks: List<RockDto>,
-    private val onRockClicked: (RockDto) -> Unit,
     private val loadRockDetails: (String, RocksViewHolder) -> Unit // callback para cargar detalles
 ) : RecyclerView.Adapter<RocksViewHolder>() {
 
@@ -30,7 +31,11 @@ class RocksAdapter(
 
         // Set the click listener for the whole item
         holder.itemView.setOnClickListener {
-            onRockClicked(rock)
+            val context = holder.itemView.context
+            val intent = Intent(context, RockDetailActivity::class.java).apply {
+                putExtra("ROCK_ID", rock.id)
+            }
+            context.startActivity(intent)
         }
     }
 }

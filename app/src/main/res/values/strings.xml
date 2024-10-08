@@ -1,5 +1,15 @@
 <resources>
     <string name="app_name">VideoGames RF</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="a_member_of_igneous">A member of: Igneous</string>
+    <string name="color_gray_pink">Color: Gray, Pink</string>
+    <string name="rock_image">Rock Image</string>
+    <string name="rock_title">Rock Title</string>
+    <string name="type">Type</string>
+    <string name="color">Color</string>
+    <string name="hardness">Hardness</string>
+    <string name="formula">Formula</string>
+    <string name="magnetic">Magnetic</string>
+    <string name="localities">Localities</string>
+    <string name="frequently_asked_questions">Frequently Asked Questions</string>
 </resources>
