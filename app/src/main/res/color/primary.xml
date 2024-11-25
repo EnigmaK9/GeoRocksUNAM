@@ -2,5 +2,5 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true" android:color="#8B4513" /> <!-- Marrón para el estado presionado (tierra) -->
     <item android:state_focused="true" android:color="#D2B48C" /> <!-- Marrón claro para el estado enfocado (arena) -->
-    <item android:color="#556B2F" /> <!-- Verde oscuro para el color por defecto (musgo/vegetación) -->
+    <item android:color="#EAEAE8" /> <!-- Para hacer match con el logo-->
 </selector>
