@@ -11,6 +11,8 @@ import com.bumptech.glide.Glide
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import android.net.Uri
+import android.widget.MediaController
 
 class RockDetailActivity : AppCompatActivity() {
 
@@ -50,6 +52,20 @@ class RockDetailActivity : AppCompatActivity() {
                         Glide.with(this@RockDetailActivity)
                             .load(rockDetail.image)
                             .into(binding.ivRockImage)
+                        // Existing code to set TextViews and ImageView
+                        // ...
+
+                        // Set up the VideoView
+                        val videoUri = Uri.parse(rockDetail.video)
+                        binding.vvRockVideo.setVideoURI(videoUri)
+
+                        // Add media controls
+                        val mediaController = MediaController(this@RockDetailActivity)
+                        mediaController.setAnchorView(binding.vvRockVideo)
+                        binding.vvRockVideo.setMediaController(mediaController)
+
+                        // Start the video
+                        binding.vvRockVideo.start()
                     } else {
                         Toast.makeText(this@RockDetailActivity, "Rock details are missing", Toast.LENGTH_SHORT).show()
                     }
@@ -57,6 +73,8 @@ class RockDetailActivity : AppCompatActivity() {
                     Toast.makeText(this@RockDetailActivity, "Error loading rock details", Toast.LENGTH_SHORT).show()
                 }
             }
+
+            // ... existing onFailure method ...
 
             override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
                 Toast.makeText(this@RockDetailActivity, "Failed to load rock details", Toast.LENGTH_SHORT).show()

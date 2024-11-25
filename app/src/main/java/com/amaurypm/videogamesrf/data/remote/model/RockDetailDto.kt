@@ -9,6 +9,9 @@ data class RockDetailDto(
     @SerializedName("image")
     var image: String? = null,
 
+    @SerializedName("video")
+    var video: String? = null, // field related to video
+
     @SerializedName("long_desc")
     var longDesc: String? = null,
 
