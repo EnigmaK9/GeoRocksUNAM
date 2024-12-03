@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="backgroundColor">#FFFFFF</color>
+    <color name="primaryTextColor">#212121</color>
+    <color name="secondaryTextColor">#757575</color>
+    <color name="primaryColor">#3F51B5</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="googleBlue">#4285F4</color>
-    <color name="primaryColor">#6200EE</color>
+    <color name="accentColor">#FF4081</color>
     <color name="primaryDarkColor">#3700B3</color>
 </resources>
