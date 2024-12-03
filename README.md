@@ -1,86 +1,123 @@
 # GeoRocksUNAM
 
-GeoRocksUNAM is an Android application designed to explore and learn about various types of rocks. The app provides specific details about each rock, including their physical characteristics, chemical properties, locations where they are found, and now includes video content and audio effects to enhance user experience.
+GeoRocksUNAM is an Android application designed to explore and learn about various types of rocks. The app provides detailed information about rocks, including physical characteristics, chemical properties, locations, and multimedia enhancements like videos and audio effects to make the learning experience engaging.
+
+---
 
 ## Features
 
-- **Rock List**: Browse a comprehensive list of rocks fetched from a remote API service.
-- **Rock Details**: Tap on a rock to access detailed information such as type, color, hardness, chemical formula, and more.
-- **Video Playback**: Each rock detail screen includes a video providing additional information about the rock.
-- **Audio Effects**: Enjoy audio effects, like sounds when performing certain actions within the app.
-- **User-Friendly Interface**: Navigate easily through a thoughtfully designed and intuitive UI.
+- **Rock List**: Browse a comprehensive collection of rocks retrieved from a REST API.
+- **Detailed Rock Information**:
+  - Type, color, hardness, chemical formula, and magnetic properties.
+  - Locations where the rock can be found.
+- **Video Playback**: Learn more about each rock through embedded videos in the detail screen.
+- **Audio Effects**: Interactive audio effects for a better user experience.
+- **Google Maps Integration**: View locations where specific rocks are commonly found.
+- **Firebase Authentication**: Secure login and registration for users.
+- **Logout Functionality**: Easy session management for user security.
+- **User-Friendly Interface**: Thoughtful and intuitive design for seamless navigation.
+
+---
 
 ## Technologies Used
 
-- **Kotlin**: Programming language used for app development.
-- **Retrofit**: Library for consuming REST APIs.
-- **Glide**: Used for efficient image loading and caching.
-- **ConstraintLayout**: Primary layout for organizing UI components.
-- **Apiary**: Mock backend service for testing API responses.
-- **VideoView**: Android component for video playback.
-- **MediaPlayer**: Used for playing audio effects.
-- **AndroidX Libraries**: For enhanced app compatibility and features.
+- **Kotlin**: Primary programming language for app development.
+- **Retrofit**: API consumption and data parsing.
+- **Glide**: Efficient image loading and caching.
+- **Firebase Authentication**: User management.
+- **Google Maps SDK**: Displaying rock locations on a map.
+- **AndroidX Libraries**: Modern libraries for backward compatibility and enhanced features.
+- **Material Design Components**: For an aesthetically pleasing UI/UX.
+- **MediaPlayer**: Audio playback for user interactions.
 
-## Instructions for Use
+---
 
-1. **Launch the App**: Upon starting, a splash screen is displayed briefly.
-2. **Explore Rock List**: The app automatically loads a list of rocks from the remote API.
-3. **View Rock Details**: Tap on any rock in the list to view detailed information.
-   - **Watch Video**: A video about the selected rock will play within the detail screen.
-   - **Listen to Audio**: Experience audio effects when interacting with the app.
-4. **Navigate Back**: Use the back button to return to the rock list and explore more rocks.
+## Getting Started
 
-## Requirements
+### Prerequisites
 
-- **Android Studio**: For running and modifying the app code.
-- **Internet Connection**: Required for fetching data and streaming videos.
-- **Android Device or Emulator**: Running Android 5.0 (Lollipop) or higher.
+- Android Studio Flamingo or higher.
+- Android device or emulator running Android 8.0 (Oreo) or above.
+- A stable internet connection to fetch data and stream videos.
 
-## Example Usage
+---
 
-![GeoRocksUNAM Example](./georocks.gif)
-
-*Note: The GIF demonstrates the new video and audio functionalities within the app.*
-
-## Installation
+### Installation
 
 1. **Clone the Repository**:
-
    ```bash
    git clone https://github.com/EnigmaK9/GeoRocksUNAM.git
    ```
 
 2. **Open in Android Studio**:
+   - Open Android Studio.
+   - Select **"Open an existing project"**.
+   - Navigate to the cloned repository folder and open it.
 
-   - Launch Android Studio.
-   - Click on **"Open an existing project"**.
-   - Navigate to the cloned repository folder and select it.
-
-3. **Build the Project**:
-
-   - Allow Android Studio to download all necessary dependencies.
-   - Ensure there are no build errors before proceeding.
+3. **Sync Dependencies**:
+   - Gradle will automatically download required dependencies. Ensure a stable internet connection.
 
 4. **Run the App**:
-
-   - Connect an Android device via USB with USB debugging enabled, or set up an Android emulator.
-   - Click the **"Run"** button in Android Studio.
+   - Connect your Android device with USB debugging enabled or start an emulator.
+   - Click the **Run** button in Android Studio.
    - Select your device or emulator to install and launch the app.
-
-## Additional Information
-
-- **API Service**: The app uses a mock backend provided by Apiary to simulate API responses for testing purposes.
-- **Video Content**: Videos are streamed from sample URLs and may require a stable internet connection for smooth playback.
-- **Audio Effects**: Audio files are included in the app resources and play during user interactions to enhance engagement.
-
-## Contributing
-
-Contributions are welcome! If you'd like to improve this app, please fork the repository and create a pull request with your changes.
-
-## License
-
-This project is licensed under the MIT License.
 
 ---
 
-Feel free to reach out! enigmak9@protonmail.com
+## How to Use
+
+1. **Login**:
+   - Use your registered email and password or create a new account.
+   
+2. **Explore Rocks**:
+   - Scroll through the rock list to explore various rocks.
+
+3. **Detailed Information**:
+   - Tap on a rock to view its details.
+   - Watch embedded videos to gain insights.
+   - Use Google Maps to locate its origin.
+
+4. **Logout**:
+   - Tap the logout button in the app toolbar to securely end your session.
+
+---
+
+## Example Screenshots
+
+![Splash Screen](./screenshots/splash_screen.png)
+![Rock List](./screenshots/rock_list.png)
+![Rock Details](./screenshots/rock_details.png)
+
+---
+
+## Contributing
+
+We welcome contributions! To contribute:
+
+1. Fork the repository.
+2. Create a new feature branch:
+   ```bash
+   git checkout -b feature/YourFeatureName
+   ```
+3. Commit your changes:
+   ```bash
+   git commit -m "Add YourFeatureName"
+   ```
+4. Push your branch:
+   ```bash
+   git push origin feature/YourFeatureName
+   ```
+5. Open a pull request to merge into the main branch.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+## Contact
+
+For questions or support, feel free to contact us at **enigmak9@protonmail.com**.
+
