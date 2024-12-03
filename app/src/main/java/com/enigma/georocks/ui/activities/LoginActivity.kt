@@ -33,14 +33,11 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.tvForgotPassword.setOnClickListener {
-            val email = binding.etEmail.text.toString().trim()
-            if (email.isNotEmpty()) {
-                resetPassword(email)
-            } else {
-                Toast.makeText(this, "Ingresa tu correo para restablecer la contraseña", Toast.LENGTH_SHORT).show()
-            }
+            val intent = Intent(this, ResetPasswordActivity::class.java)
+            startActivity(intent)
+            // overridePendingTransition está obsoleto; es mejor eliminarlo o usar alternativas modernas
         }
-    }
+    } // Cierre correcto del método onCreate
 
     private fun login(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
@@ -57,14 +54,5 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
-    private fun resetPassword(email: String) {
-        auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(this, "Correo de restablecimiento enviado", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Error al enviar correo de restablecimiento", Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
+
 }
