@@ -84,9 +84,7 @@ GeoRocksUNAM is an Android application designed to explore and learn about vario
 
 ## Example Screenshots
 
-![Splash Screen](./screenshots/splash_screen.png)
-![Rock List](./screenshots/rock_list.png)
-![Rock Details](./screenshots/rock_details.png)
+![Gif](./screenshots/georocks.gif)
 
 ---
 
