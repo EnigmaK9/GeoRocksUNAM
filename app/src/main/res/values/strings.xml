@@ -12,4 +12,25 @@
     <string name="magnetic">Magnetic</string>
     <string name="localities">Localities</string>
     <string name="frequently_asked_questions">Frequently Asked Questions</string>
+    <string name="unknown_title">Unknown Title</string>
+    <string name="type_label">Tipe: %1$s</string>
+    <string name="unknown_type">Unknown Type</string>
+    <string name="color_label">Color: %1$s</string>
+    <string name="unknown_color">Unknown color</string>
+    <string name="hardness_label">hardness: %1$s</string>
+    <string name="formula_label">Formula: %1$s</string>
+    <string name="magnetic_label">Magnetic: %1$s</string>
+    <string name="localities_label">Localities: %1$s</string>
+    <string name="unknown">Unknown</string>
+    <string name="rock_details_missing">Rock details missing</string>
+    <string name="error_loading_details">Error loading rock details</string>
+    <string name="failed_to_load_details">Failed to load rock details</string>
+    <string name="app_logo">App Logo</string>
+    <string name="email_hint">Enter your email</string>
+    <string name="password_hint">Enter your password</string>
+    <string name="login_button">Login</string>
+    <string name="register_prompt">Register</string>
+    <string name="google_sign_in_button">Sign in with Google</string>
+    <string name="close_session">Close session</string>
+
 </resources>

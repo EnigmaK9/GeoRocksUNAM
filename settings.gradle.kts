@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VideoGames RF"
+rootProject.name = "GeoRocks"
 include(":app")
