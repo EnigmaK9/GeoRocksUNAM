@@ -1,0 +1,11 @@
+<resources>
+    <item name="ivRockImage" type="id"/>
+    <item name="tvRockTitle" type="id"/>
+    <item name="tvRockType" type="id"/>
+    <item name="tvRockColor" type="id"/>
+    <item name="tvRockHardness" type="id"/>
+    <item name="tvRockFormula" type="id"/>
+    <item name="tvRockMagnetic" type="id"/>
+    <item name="tvRockLocalities" type="id"/>
+    <item name="map_fragment" type="id"/>
+</resources>

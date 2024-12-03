@@ -54,6 +54,8 @@ android {
 
 dependencies {
 
+
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -68,6 +70,8 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     // Glide y Picasso
+    implementation(libs.glide.v4151)
+    annotationProcessor(libs.compiler)
     implementation(libs.glide)
     implementation(libs.picasso)
 

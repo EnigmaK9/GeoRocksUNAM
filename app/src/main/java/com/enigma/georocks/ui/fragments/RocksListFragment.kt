@@ -1,20 +1,21 @@
 package com.enigma.georocks.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.enigma.georocks.R
 import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
-import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.FragmentRocksListBinding
+import com.enigma.georocks.ui.activities.LoginActivity
 import com.enigma.georocks.ui.adapters.RocksAdapter
 import com.enigma.georocks.ui.adapters.RocksViewHolder
+import com.google.firebase.auth.FirebaseAuth
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -25,8 +26,9 @@ class RocksListFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var repository: RockRepository
+    private lateinit var auth: FirebaseAuth
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentRocksListBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -35,7 +37,34 @@ class RocksListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         repository = (requireActivity().application as GeoRocksApp).repository
+        auth = FirebaseAuth.getInstance()
 
+        setupToolbar()
+        loadRocks()
+    }
+
+    private fun setupToolbar() {
+        binding.toolbarRocksList.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_logout -> {
+                    performLogout()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun performLogout() {
+        auth.signOut()
+        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+        val intent = Intent(requireContext(), LoginActivity::class.java)
+        startActivity(intent)
+        requireActivity().finish()
+    }
+
+    private fun loadRocks() {
+        binding.pbLoading.visibility = View.VISIBLE
         val call: Call<MutableList<RockDto>> = repository.getRocksApiary()
 
         call.enqueue(object : Callback<MutableList<RockDto>> {
@@ -44,25 +73,20 @@ class RocksListFragment : Fragment() {
 
                 if (response.isSuccessful) {
                     response.body()?.let { rocks ->
-                        Log.d("RocksListFragment", "Lista de rocas recibida con éxito: $rocks")
-
-                        // Configura el RecyclerView con el adaptador y el callback correcto
                         binding.rvRocks.apply {
                             layoutManager = LinearLayoutManager(requireContext())
                             adapter = RocksAdapter(rocks) { rockId, viewHolder ->
                                 loadRockDetails(rockId, viewHolder)
                             }
                         }
-                    } ?: run {
-                        Log.e("RocksListFragment", "Respuesta vacía del servidor")
                     }
                 } else {
-                    Log.e("RocksListFragment", "Error en la respuesta: ${response.code()} ${response.message()}")
+                    Toast.makeText(requireContext(), "Error loading data", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<MutableList<RockDto>>, t: Throwable) {
-                Toast.makeText(requireContext(), "Error: No connection available", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "No connection available", Toast.LENGTH_SHORT).show()
                 binding.pbLoading.visibility = View.GONE
             }
         })
@@ -73,17 +97,14 @@ class RocksListFragment : Fragment() {
             override fun onResponse(call: Call<RockDetailDto>, response: Response<RockDetailDto>) {
                 if (response.isSuccessful) {
                     val rockDetail = response.body()
-                    Log.d("RocksListFragment", "Detalles de la roca - Type: ${rockDetail?.aMemberOf}, Color: ${rockDetail?.color}")
-
-                    // Actualizar el ViewHolder con los detalles adicionales
-                    rockDetail?.let { viewHolder.updateDetails(it.aMemberOf, it.color) }
-                } else {
-                    Log.e("RocksListFragment", "Error al obtener detalles de la roca: ${response.code()} ${response.message()}")
+                    rockDetail?.let { detail ->
+                        viewHolder.updateDetails(detail.aMemberOf, detail.color)
+                    }
                 }
             }
 
             override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
-                Log.e("RocksListFragment", "Error retrieving rock details", t)
+                // Handle failure case
             }
         })
     }

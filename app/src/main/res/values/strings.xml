@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">VideoGames RF</string>
+    <!-- General Strings -->
+    <string name="app_name">GeoRocks</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="a_member_of_igneous">A member of: Igneous</string>
     <string name="color_gray_pink">Color: Gray, Pink</string>
@@ -13,11 +14,11 @@
     <string name="localities">Localities</string>
     <string name="frequently_asked_questions">Frequently Asked Questions</string>
     <string name="unknown_title">Unknown Title</string>
-    <string name="type_label">Tipe: %1$s</string>
+    <string name="type_label">Type: %1$s</string>
     <string name="unknown_type">Unknown Type</string>
     <string name="color_label">Color: %1$s</string>
-    <string name="unknown_color">Unknown color</string>
-    <string name="hardness_label">hardness: %1$s</string>
+    <string name="unknown_color">Unknown Color</string>
+    <string name="hardness_label">Hardness: %1$s</string>
     <string name="formula_label">Formula: %1$s</string>
     <string name="magnetic_label">Magnetic: %1$s</string>
     <string name="localities_label">Localities: %1$s</string>
@@ -26,6 +27,8 @@
     <string name="error_loading_details">Error loading rock details</string>
     <string name="failed_to_load_details">Failed to load rock details</string>
     <string name="app_logo">App Logo</string>
+
+    <!-- Login Activity -->
     <string name="email_hint">Enter your email</string>
     <string name="password_hint">Enter your password</string>
     <string name="login_button">Login</string>
@@ -34,8 +37,36 @@
     <string name="close_session">Close session</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="Email">Email</string>
+
+    <!-- Reset Password Activity -->
     <string name="reset_password">Reset Password</string>
     <string name="send_email">Send Email</string>
-    <string name="send_reset_email">Send Reset Email\n</string>
+    <string name="send_reset_email">Send Reset Email</string>
 
+    <!-- Register Activity -->
+    <string name="register">Register</string>
+    <string name="register_title">Register User</string>
+    <string name="register_button">Register</string>
+
+    <!-- Registration Messages -->
+    <string name="registration_success">Registration successful</string>
+    <string name="registration_failure">Error registering user</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
+    <string name="invalid_email">Please enter a valid email address</string>
+    <string name="complete_all_fields">Please complete all fields</string>
+
+    <!-- Specific Exception Messages -->
+    <string name="email_already_registered">This email is already registered.</string>
+    <string name="password_too_weak">The password is too weak.</string>
+    <string name="invalid_email_address">Invalid email address.</string>
+
+    <!-- Main Menu -->
+    <string name="action_register">Register</string>
+
+    <!-- Additional Feedback Messages -->
+    <string name="rock_details_loaded">Rock details loaded successfully</string>
+    <string name="login_success">Login successful</string>
+    <string name="login_failure">Authentication failed</string>
+    <string name="rock_details">Rock Details</string>
+    <string name="logout">Log Out</string>
 </resources>

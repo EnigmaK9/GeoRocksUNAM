@@ -2,22 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisos para acceso a Internet y ubicación -->
+    <!-- Permisos necesarios -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-        android:allowBackup="true"
-        android:usesCleartextTraffic="false"
         android:name=".application.GeoRocksApp"
-        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.VideoGamesRF"
+        android:theme="@style/Theme.GeoRocks"
         tools:targetApi="31">
 
         <!-- Meta-data para Google Maps API Key -->
@@ -35,27 +35,24 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity configurada para la lista de rocas -->
+        <!-- Actividades de la aplicación -->
         <activity
             android:name=".ui.MainActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
 
-        <!-- RockDetailActivity para mostrar los detalles de la roca -->
         <activity
             android:name=".ui.activities.RockDetailActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
 
-        <!-- LoginActivity -->
         <activity
             android:name=".ui.activities.LoginActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
 
         <activity
-            android:name=".ui.activities.ResetPasswordActivity"
-            />
+            android:name=".ui.activities.ResetPasswordActivity" />
 
+        <activity
+            android:name=".ui.activities.RegisterActivity" />
     </application>
+
 </manifest>

@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- General Colors -->
     <color name="backgroundColor">#FFFFFF</color>
     <color name="primaryTextColor">#212121</color>
     <color name="secondaryTextColor">#757575</color>
     <color name="primaryColor">#3F51B5</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
     <color name="googleBlue">#4285F4</color>
     <color name="accentColor">#FF4081</color>
     <color name="primaryDarkColor">#3700B3</color>
+
+    <!-- Additional Colors for UI Feedback -->
+    <color name="errorColor">#B00020</color> <!-- Red color for errors -->
+    <color name="successColor">#4CAF50</color> <!-- Green color for success -->
+    <color name="disabledColor">#9E9E9E</color> <!-- Gray for disabled elements -->
+
+    <!-- Button Colors -->
+    <color name="buttonColor">#3F51B5</color> <!-- Button background color -->
+    <color name="buttonTextColor">#FFFFFF</color> <!-- Button text color -->
+
+    <!-- Optional: Snackbar Colors (if customizing) -->
+    <color name="snackbarBackgroundColor">#323232</color> <!-- Dark Gray for Snackbar background -->
+    <color name="snackbarTextColor">#FFFFFF</color> <!-- White text for Snackbar -->
+
+    <!-- Any other specific colors used in your app -->
 </resources>
