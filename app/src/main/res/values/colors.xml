@@ -1,6 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Primary colors -->
+    <color name="primary_color">#6200ee</color>
+    <color name="primary_dark_color">#3700b3</color>
+    <color name="google_blue">#4285f4</color>
+
+    <!-- High contrast colors -->
+    <color name="high_contrast_white">#ffffff</color>
+    <color name="high_contrast_text">#000000</color>
+    <color name="contrast_background">#f0f0f0</color>
+
+    <!-- Other colors -->
+    <color name="white">#ffffff</color>
+    <color name="secondary_text_color">#757575</color>
+
+
+    <color name="success_color">#4CAF50</color> <!-- Verde para éxito -->
+    <color name="error_color">#F44336</color> <!-- Rojo para errores -->
+    <color name="snackbar_text_color">#FFFFFF</color> <!-- Blanco para texto en Snackbar -->
 
 </resources>

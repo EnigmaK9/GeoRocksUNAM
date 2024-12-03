@@ -1,18 +1,31 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
-    namespace = "com.amaurypm.videogamesrf"
-    compileSdk = 34
+    namespace = "com.enigma.georocks"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.amaurypm.videogamesrf"
+        applicationId = "com.enigma.georocks"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
+        // Leer MAPS_API_KEY desde local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+        val mapsApiKey = localProperties.getProperty("MAPS_API_KEY") ?: ""
+        resValue("string", "google_maps_key", mapsApiKey)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,19 +40,21 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
-    buildFeatures{
+    buildFeatures {
         viewBinding = true
     }
 }
 
 dependencies {
+
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -47,24 +62,34 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
-    //Para retrofit y Gson
+    // Retrofit y Gson
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
-    //Adicional para el interceptor
+    // Interceptor
     implementation(libs.logging.interceptor)
 
-    //Glide y Picasso
+    // Glide y Picasso
+    implementation(libs.glide.v4151)
+    annotationProcessor(libs.compiler)
     implementation(libs.glide)
     implementation(libs.picasso)
 
-    //Para las corrutinas con alcance lifecycle
+    // Corutinas con alcance lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    //Imágenes con bordes redondeados
+    // Imágenes con bordes redondeados
     implementation(libs.roundedimageview)
+
+    // Google Maps
+    implementation(libs.play.services.maps)
+
+    // Firebase Authentication
+    implementation(platform(libs.firebase.bom.v3223)) // Replace with the desired version
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.common.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.core.v351)
 }

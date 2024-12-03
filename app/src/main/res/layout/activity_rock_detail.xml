@@ -1,101 +1,110 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    tools:context=".ui.activities.RockDetailActivity">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/ivRockImage"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="@string/rock_image" />
-
-        <TextView
-            android:id="@+id/tvRockTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="16dp"
-            android:text="@string/rock_title" />
-
-        <TextView
-            android:id="@+id/tvRockType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/type" />
-
-        <TextView
-            android:id="@+id/tvRockColor"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/color" />
-
-        <TextView
-            android:id="@+id/tvRockHardness"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/hardness" />
-
-        <TextView
-            android:id="@+id/tvRockFormula"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/formula" />
-
-        <TextView
-            android:id="@+id/tvRockMagnetic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/magnetic" />
-
-        <TextView
-            android:id="@+id/tvRockLocalities"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/localities" />
-
-        <TextView
-            android:id="@+id/tvRockFaq"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginTop="8dp"
-            android:text="@string/frequently_asked_questions" />
-
-        <!-- Add VideoView -->
-        <VideoView
-            android:id="@+id/vvRockVideo"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarRockDetail"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="16dp" />
+            android:layout_height="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+            android:title="@string/rock_details"
+            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-    </LinearLayout>
-</ScrollView>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="@color/contrast_background"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:id="@+id/llContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/ivRockImage"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/rock_image"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/tvRockTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_color"
+                android:text="@string/rock_title"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/tvRockType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/type_label"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvRockColor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/color_label"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvRockHardness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/hardness_label"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvRockFormula"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/formula_label"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvRockMagnetic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/magnetic_label"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvRockLocalities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/localities_label"
+                android:layout_marginBottom="16dp" />
+
+            <VideoView
+                android:id="@+id/vvRockVideo"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="16dp" />
+
+            <fragment
+                android:id="@+id/map_fragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="16dp" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
