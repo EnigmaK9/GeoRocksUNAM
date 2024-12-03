@@ -82,9 +82,9 @@ GeoRocksUNAM is an Android application designed to explore and learn about vario
 
 ---
 
-## Example Screenshots
+## ExampleVideo
+![GeoRocks](https://github.com/EnigmaK9/GeoRocksUNAM/blob/main/georocks.gif?raw=true)
 
-![Gif](./screenshots/georocks.gif)
 
 ---
 
