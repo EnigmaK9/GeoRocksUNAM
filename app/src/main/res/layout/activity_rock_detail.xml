@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:background="@color/backgroundColor"
+        android:background="@color/contrast_background"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="@color/primaryTextColor"
+                android:textColor="@color/primary_color"
                 android:text="@string/rock_title"
                 android:layout_marginBottom="16dp" />
 

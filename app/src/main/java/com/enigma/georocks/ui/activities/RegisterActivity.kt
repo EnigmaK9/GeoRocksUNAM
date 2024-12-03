@@ -108,8 +108,8 @@ class RegisterActivity : AppCompatActivity() {
                         getString(R.string.registration_success),
                         Snackbar.LENGTH_LONG
                     )
-                        .setBackgroundTint(ContextCompat.getColor(this, R.color.successColor))
-                        .setTextColor(ContextCompat.getColor(this, R.color.snackbarTextColor))
+                        .setBackgroundTint(ContextCompat.getColor(this, R.color.success_color))
+                        .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
                         .show()
                     finish()
                 } else {
@@ -123,8 +123,8 @@ class RegisterActivity : AppCompatActivity() {
                             getString(R.string.email_already_registered),
                             Snackbar.LENGTH_LONG
                         )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.errorColor))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbarTextColor))
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
                             .show()
                     } catch (e: FirebaseAuthWeakPasswordException) {
                         // Weak password
@@ -133,8 +133,8 @@ class RegisterActivity : AppCompatActivity() {
                             getString(R.string.password_too_weak),
                             Snackbar.LENGTH_LONG
                         )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.errorColor))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbarTextColor))
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
                             .show()
                     } catch (e: FirebaseAuthInvalidCredentialsException) {
                         // Invalid email address
@@ -143,8 +143,8 @@ class RegisterActivity : AppCompatActivity() {
                             getString(R.string.invalid_email_address),
                             Snackbar.LENGTH_LONG
                         )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.errorColor))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbarTextColor))
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
                             .show()
                     } catch (e: Exception) {
                         // Other errors
@@ -153,8 +153,8 @@ class RegisterActivity : AppCompatActivity() {
                             getString(R.string.registration_failure) + ": ${e.message}",
                             Snackbar.LENGTH_LONG
                         )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.errorColor))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbarTextColor))
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
                             .show()
                     }
                 }
