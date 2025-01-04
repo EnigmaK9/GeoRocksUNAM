@@ -1,9 +1,29 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.GeoRocks" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Example rocky colors: #7B7D7D (dark gray) and #B2BEB5 (lighter grayish). -->
+        <!-- Change these as you wish. -->
+
+        <!-- Primary (main brand color) -->
+        <item name="colorPrimary">#7B7D7D</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <!-- Secondary (accents, highlights) -->
+        <item name="colorSecondary">#B2BEB5</item>
+        <item name="colorOnSecondary">#000000</item>
+
+        <!-- Optional: define more colors to fully leverage Material 3 -->
+        <item name="colorSurface">#F5F5F5</item>
+        <item name="colorOnSurface">#000000</item>
+
+        <item name="colorOnBackground">#000000</item>
+        <item name="colorError">#B3261E</item>
+        <item name="colorOnError">#FFFFFF</item>
+
+        <!-- You can also define typography, shape, etc., if needed. -->
+        <!-- e.g., <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Material3.SmallComponent</item> -->
     </style>
 
-    <style name="Theme.GeoRocks" parent="Base.Theme.GeoRocks" />
+    <!-- Inherit from Base.Theme.GeoRocks so that we don't repeat ourselves. -->
+    <style name="Theme.GeoRocks" parent="Base.Theme.GeoRocks"/>
 </resources>

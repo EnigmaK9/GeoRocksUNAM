@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -6,6 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.activities.RockDetailActivity">
 
+    <!-- AppBar with Toolbar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -19,6 +21,7 @@
             app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Scrollable content beneath the AppBar -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -33,78 +36,181 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <ImageView
-                android:id="@+id/ivRockImage"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/rock_image"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:id="@+id/tvRockTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color"
-                android:text="@string/rock_title"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:id="@+id/tvRockType"
+            <!-- 1) CardView for the Rock Image -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/type_label"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/gradient_box"
+                app:cardCornerRadius="12dp"
+                app:cardUseCompatPadding="true"
+                app:cardPreventCornerOverlap="true">
 
-            <TextView
-                android:id="@+id/tvRockColor"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivRockImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/rock_image" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 2) CardView for Basic Rock Info (title, type, color, hardness...) -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/color_label"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/gradient_box"
+                app:cardCornerRadius="12dp"
+                app:cardUseCompatPadding="true"
+                app:cardPreventCornerOverlap="true">
 
-            <TextView
-                android:id="@+id/tvRockHardness"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvRockTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/rocky_text_color"
+                        android:text="@string/rock_title"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/tvRockType"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/type_label"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/rocky_text_color" />
+
+                    <TextView
+                        android:id="@+id/tvRockColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/color_label"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/rocky_text_color" />
+
+                    <TextView
+                        android:id="@+id/tvRockHardness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hardness_label"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/rocky_text_color" />
+
+                    <TextView
+                        android:id="@+id/tvRockFormula"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/formula_label"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/rocky_text_color" />
+
+                    <TextView
+                        android:id="@+id/tvRockMagnetic"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/magnetic_label"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/rocky_text_color" />
+
+                    <TextView
+                        android:id="@+id/tvRockLocalities"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/localities_label"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/rocky_text_color" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 3) CardView for Video -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/hardness_label"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/gradient_box"
+                app:cardCornerRadius="12dp"
+                app:cardUseCompatPadding="true"
+                app:cardPreventCornerOverlap="true">
 
-            <TextView
-                android:id="@+id/tvRockFormula"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <VideoView
+                        android:id="@+id/vvRockVideo"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 4) CardView for FAQ -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/formula_label"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/gradient_box"
+                app:cardCornerRadius="12dp"
+                app:cardUseCompatPadding="true"
+                app:cardPreventCornerOverlap="true">
 
-            <TextView
-                android:id="@+id/tvRockMagnetic"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvRockFaq"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/rocky_text_color"
+                        android:textSize="14sp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 5) CardView for Map -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/magnetic_label"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/gradient_box"
+                app:cardCornerRadius="12dp"
+                app:cardUseCompatPadding="true"
+                app:cardPreventCornerOverlap="true">
 
-            <TextView
-                android:id="@+id/tvRockLocalities"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/localities_label"
-                android:layout_marginBottom="16dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <VideoView
-                android:id="@+id/vvRockVideo"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginBottom="16dp" />
+                    <fragment
+                        android:id="@+id/map_fragment"
+                        android:name="com.google.android.gms.maps.SupportMapFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            <fragment
-                android:id="@+id/map_fragment"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginBottom="16dp" />
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

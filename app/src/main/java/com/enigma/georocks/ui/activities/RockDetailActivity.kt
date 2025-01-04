@@ -1,5 +1,4 @@
 package com.enigma.georocks.ui.activities
-import com.bumptech.glide.Glide
 
 import android.content.Intent
 import android.net.Uri
@@ -10,6 +9,7 @@ import android.widget.MediaController
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import com.bumptech.glide.Glide
 import com.enigma.georocks.R
 import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
@@ -47,7 +47,7 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         // Set up Toolbar
         val toolbar: Toolbar = findViewById(R.id.toolbarRockDetail)
         setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Back button
+        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Enable back button
         supportActionBar?.title = getString(R.string.rock_details)
 
         // Initialize Repository
@@ -63,7 +63,8 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         // Initialize Map Fragment
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
+        val mapFragment =
+            supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
     }
 
@@ -102,36 +103,76 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                     if (rockDetail != null) {
                         updateUIWithDetails(rockDetail)
                     } else {
-                        Toast.makeText(this@RockDetailActivity, getString(R.string.rock_details_missing), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@RockDetailActivity,
+                            getString(R.string.rock_details_missing),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else {
-                    Toast.makeText(this@RockDetailActivity, getString(R.string.error_loading_details), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@RockDetailActivity,
+                        getString(R.string.error_loading_details),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
             override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
-                Toast.makeText(this@RockDetailActivity, getString(R.string.failed_to_load_details), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@RockDetailActivity,
+                    getString(R.string.failed_to_load_details),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
 
     private fun updateUIWithDetails(rockDetail: RockDetailDto) {
-        binding.tvRockTitle.text = rockDetail.title ?: getString(R.string.unknown_title)
-        binding.tvRockType.text = getString(R.string.type_label, rockDetail.aMemberOf ?: getString(R.string.unknown_type))
-        binding.tvRockColor.text = getString(R.string.color_label, rockDetail.color ?: getString(R.string.unknown_color))
-        binding.tvRockHardness.text = getString(R.string.hardness_label, rockDetail.physicalProperties?.hardness?.toString() ?: getString(R.string.unknown))
-        binding.tvRockFormula.text = getString(R.string.formula_label, rockDetail.chemicalProperties?.formula ?: getString(R.string.unknown))
-        binding.tvRockMagnetic.text = getString(R.string.magnetic_label, rockDetail.physicalProperties?.magnetic?.toString() ?: getString(R.string.unknown))
-        binding.tvRockLocalities.text = getString(R.string.localities_label, rockDetail.localities?.joinToString() ?: getString(R.string.unknown))
+        // Basic text fields
+        binding.tvRockTitle.text =
+            rockDetail.title ?: getString(R.string.unknown_title)
+        binding.tvRockType.text =
+            getString(
+                R.string.type_label,
+                rockDetail.aMemberOf ?: getString(R.string.unknown_type)
+            )
+        binding.tvRockColor.text =
+            getString(
+                R.string.color_label,
+                rockDetail.color ?: getString(R.string.unknown_color)
+            )
+        binding.tvRockHardness.text =
+            getString(
+                R.string.hardness_label,
+                rockDetail.physicalProperties?.hardness?.toString() ?: getString(R.string.unknown)
+            )
+        binding.tvRockFormula.text =
+            getString(
+                R.string.formula_label,
+                rockDetail.chemicalProperties?.formula ?: getString(R.string.unknown)
+            )
+        binding.tvRockMagnetic.text =
+            getString(
+                R.string.magnetic_label,
+                rockDetail.physicalProperties?.magnetic?.toString() ?: getString(R.string.unknown)
+            )
+        binding.tvRockLocalities.text =
+            getString(
+                R.string.localities_label,
+                rockDetail.localities?.joinToString() ?: getString(R.string.unknown)
+            )
 
-        // Load Image
-        rockDetail.image?.let {
-            Glide.with(this).load(it).into(binding.ivRockImage)
+        // Load image
+        rockDetail.image?.let { imageUrl ->
+            Glide.with(this)
+                .load(imageUrl)
+                .into(binding.ivRockImage)
         }
 
-        // Setup Video
-        rockDetail.video?.let {
-            val videoUri = Uri.parse(it)
+        // Setup video
+        rockDetail.video?.let { videoUrl ->
+            val videoUri = Uri.parse(videoUrl)
             binding.vvRockVideo.setVideoURI(videoUri)
             val mediaController = MediaController(this)
             mediaController.setAnchorView(binding.vvRockVideo)
@@ -139,10 +180,23 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
             binding.vvRockVideo.start()
         }
 
-        // Set Map Coordinates
+        // Set up map coordinates
         rockLatitude = rockDetail.latitude
         rockLongitude = rockDetail.longitude
         googleMap?.let { updateMapMarker(it) }
+
+        // Display frequently asked questions
+        // Use a local val to avoid the "smart cast" error
+        val faqList = rockDetail.frequentlyAskedQuestions
+        if (!faqList.isNullOrEmpty()) {
+            val faqsText = faqList.joinToString(
+                separator = "\n• ",
+                prefix = "• "
+            )
+            binding.tvRockFaq.text = faqsText
+        } else {
+            binding.tvRockFaq.text = getString(R.string.no_faq_found)
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -153,7 +207,11 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun updateMapMarker(map: GoogleMap) {
         if (rockLatitude != null && rockLongitude != null) {
             val location = LatLng(rockLatitude!!, rockLongitude!!)
-            map.addMarker(MarkerOptions().position(location).title(binding.tvRockTitle.text.toString()))
+            map.addMarker(
+                MarkerOptions()
+                    .position(location)
+                    .title(binding.tvRockTitle.text.toString())
+            )
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10f))
         }
     }

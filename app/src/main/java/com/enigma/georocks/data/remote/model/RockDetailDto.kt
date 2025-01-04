@@ -10,7 +10,7 @@ data class RockDetailDto(
     var image: String? = null,
 
     @SerializedName("video")
-    var video: String? = null, // Campo relacionado con el video
+    var video: String? = null,
 
     @SerializedName("long_desc")
     var longDesc: String? = null,
@@ -26,6 +26,9 @@ data class RockDetailDto(
 
     @SerializedName("localities")
     var localities: List<String>? = null,
+
+    @SerializedName("frequently_asked_questions")
+    var frequentlyAskedQuestions: List<String>? = null,
 
     @SerializedName("physical_properties")
     var physicalProperties: PhysicalProperties? = null,
@@ -50,9 +53,8 @@ data class RockDetailDto(
         var hardness: Double? = null,
 
         @SerializedName("pp_magnetic")
-        var magnetic: Boolean? = null // Agregada propiedad 'magnetic'
+        var magnetic: Boolean? = null
     )
-
 
     data class ChemicalProperties(
         @SerializedName("chemical_classification")
@@ -62,3 +64,4 @@ data class RockDetailDto(
         var formula: String? = null
     )
 }
+

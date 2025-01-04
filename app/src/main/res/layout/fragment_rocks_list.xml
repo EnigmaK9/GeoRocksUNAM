@@ -2,48 +2,72 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.activities.YourRocksListActivity">
 
-    <!-- AppBar with Toolbar -->
+    <!-- AppBar with a gradient background -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary_color">
+        android:background="@drawable/gradient_appbar">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbarRocksList"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:title="@string/app_name"
-            android:titleTextColor="@color/white"
+            android:titleTextColor="@android:color/white"
             app:menu="@menu/menu_rocks_list"
             app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main Content -->
-    <LinearLayout
+    <!-- The main content is placed below the AppBar -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true"
+        android:padding="16dp">
 
-        <!-- ProgressBar for Loading -->
-        <ProgressBar
-            android:id="@+id/pbLoading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone"
-            android:layout_marginBottom="16dp" />
-
-        <!-- RecyclerView for Rocks -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvRocks"
+        <!-- A CardView with a subtle gradient background for the content -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:scrollbars="vertical" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:foreground="?attr/selectableItemBackground"
+            android:elevation="4dp"
+            app:cardCornerRadius="12dp"
+            app:cardUseCompatPadding="true"
+            app:cardPreventCornerOverlap="true"
+            android:background="@drawable/gradient_box">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- ProgressBar for Loading -->
+                <ProgressBar
+                    android:id="@+id/pbLoading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:visibility="gone"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- RecyclerView for Rocks -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRocks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:scrollbars="vertical" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </ScrollView>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

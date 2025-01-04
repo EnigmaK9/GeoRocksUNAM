@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.2"
+agp = "8.7.3"
 compiler = "4.15.1"
 espresso-core-version = "3.5.1"
 firebase-bom-version = "32.2.3"

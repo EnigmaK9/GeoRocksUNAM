@@ -69,4 +69,5 @@
     <string name="login_failure">Authentication failed</string>
     <string name="rock_details">Rock Details</string>
     <string name="logout">Log Out</string>
+    <string name="no_faq_found">No FAQs found.</string>
 </resources>
