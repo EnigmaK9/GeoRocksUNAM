@@ -11,8 +11,8 @@ import com.enigma.georocks.databinding.RockElementBinding
 import com.enigma.georocks.ui.activities.RockDetailActivity
 
 class RocksAdapter(
-    private val rocks: List<RockDto>,
-    private val loadRockDetails: (String, RocksViewHolder) -> Unit // callback para cargar detalles
+    private var rocks: List<RockDto>,
+    private val loadRockDetails: (String, RocksViewHolder) -> Unit // Callback to load details
 ) : RecyclerView.Adapter<RocksViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RocksViewHolder {
@@ -47,5 +47,11 @@ class RocksAdapter(
             }
             context.startActivity(intent)
         }
+    }
+
+    // Method to update the data in the adapter
+    fun updateData(newRocks: List<RockDto>) {
+        this.rocks = newRocks
+        notifyDataSetChanged()
     }
 }

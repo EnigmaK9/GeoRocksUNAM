@@ -20,8 +20,10 @@
         android:theme="@style/Theme.GeoRocks"
         tools:targetApi="31">
 
-        <!-- Meta-data para Google Maps API Key -->
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="@string/google_maps_key"/>
+        <!-- Meta-data  Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
 
         <!-- SplashActivity como pantalla de inicio -->
         <activity

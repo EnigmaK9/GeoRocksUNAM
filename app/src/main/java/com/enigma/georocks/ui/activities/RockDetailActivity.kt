@@ -41,30 +41,31 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityRockDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize FirebaseAuth
+        // Setup FirebaseAuth
         auth = FirebaseAuth.getInstance()
 
-        // Set up Toolbar
+        // Setup Toolbar
         val toolbar: Toolbar = findViewById(R.id.toolbarRockDetail)
         setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Enable back button
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.rock_details)
 
-        // Initialize Repository
+        // Get the repository
         repository = (application as GeoRocksApp).repository
 
-        // Get Rock ID from Intent
+        // Retrieve rockId from intent
         val rockId = intent.getStringExtra("ROCK_ID")
-        if (rockId != null) {
-            loadRockDetails(rockId)
-        } else {
-            Toast.makeText(this, "No rock ID provided", Toast.LENGTH_SHORT).show()
+        if (rockId == null) {
+            Toast.makeText(this, R.string.no_rock_id_provided, Toast.LENGTH_SHORT).show()
             finish()
+            return
         }
 
-        // Initialize Map Fragment
-        val mapFragment =
-            supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
+        // Load rock details
+        loadRockDetails(rockId)
+
+        // Initialize the map
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
     }
 
@@ -79,6 +80,10 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 logout()
                 true
             }
+            R.id.action_route -> {
+                openRouteInGoogleMaps()
+                true
+            }
             android.R.id.home -> {
                 finish()
                 true
@@ -89,9 +94,8 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun logout() {
         auth.signOut()
-        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
-        val intent = Intent(this, LoginActivity::class.java)
-        startActivity(intent)
+        Toast.makeText(this, R.string.logged_out_successfully, Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
 
@@ -105,14 +109,14 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                     } else {
                         Toast.makeText(
                             this@RockDetailActivity,
-                            getString(R.string.rock_details_missing),
+                            R.string.rock_details_missing,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
                 } else {
                     Toast.makeText(
                         this@RockDetailActivity,
-                        getString(R.string.error_loading_details),
+                        R.string.error_loading_details,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -121,7 +125,7 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
             override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
                 Toast.makeText(
                     this@RockDetailActivity,
-                    getString(R.string.failed_to_load_details),
+                    R.string.failed_to_load_details,
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -129,48 +133,68 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun updateUIWithDetails(rockDetail: RockDetailDto) {
-        // Basic text fields
-        binding.tvRockTitle.text =
-            rockDetail.title ?: getString(R.string.unknown_title)
-        binding.tvRockType.text =
-            getString(
-                R.string.type_label,
-                rockDetail.aMemberOf ?: getString(R.string.unknown_type)
-            )
-        binding.tvRockColor.text =
-            getString(
-                R.string.color_label,
-                rockDetail.color ?: getString(R.string.unknown_color)
-            )
-        binding.tvRockHardness.text =
-            getString(
-                R.string.hardness_label,
-                rockDetail.physicalProperties?.hardness?.toString() ?: getString(R.string.unknown)
-            )
-        binding.tvRockFormula.text =
-            getString(
-                R.string.formula_label,
-                rockDetail.chemicalProperties?.formula ?: getString(R.string.unknown)
-            )
-        binding.tvRockMagnetic.text =
-            getString(
-                R.string.magnetic_label,
-                rockDetail.physicalProperties?.magnetic?.toString() ?: getString(R.string.unknown)
-            )
-        binding.tvRockLocalities.text =
-            getString(
-                R.string.localities_label,
-                rockDetail.localities?.joinToString() ?: getString(R.string.unknown)
-            )
+        // Title & description
+        binding.tvRockTitle.text = rockDetail.title ?: getString(R.string.unknown_title)
+        binding.tvRockDescription.text = rockDetail.longDesc ?: getString(R.string.no_description_available)
 
-        // Load image
-        rockDetail.image?.let { imageUrl ->
-            Glide.with(this)
-                .load(imageUrl)
-                .into(binding.ivRockImage)
+        // Basic properties
+        binding.tvRockType.text = getString(
+            R.string.type_label,
+            rockDetail.aMemberOf ?: getString(R.string.unknown_type)
+        )
+        binding.tvRockColor.text = getString(
+            R.string.color_label,
+            rockDetail.color ?: getString(R.string.unknown_color)
+        )
+        binding.tvRockHardness.text = getString(
+            R.string.hardness_label,
+            rockDetail.hardness?.toString() ?: getString(R.string.unknown)
+        )
+        binding.tvRockFormula.text = getString(
+            R.string.formula_label,
+            rockDetail.formula ?: getString(R.string.unknown)
+        )
+        binding.tvRockMagnetic.text = getString(
+            R.string.magnetic_label,
+            rockDetail.magnetic?.toString() ?: getString(R.string.unknown)
+        )
+        binding.tvRockHealthRisks.text = getString(
+            R.string.health_risks_label,
+            rockDetail.healthRisks ?: getString(R.string.none)
+        )
+
+        // Localities
+        val localitiesList = rockDetail.localities
+        if (!localitiesList.isNullOrEmpty()) {
+            binding.tvRockLocalities.text = getString(
+                R.string.localities_label,
+                localitiesList.joinToString()
+            )
+        } else {
+            binding.tvRockLocalities.text = getString(
+                R.string.localities_label,
+                getString(R.string.unknown)
+            )
         }
 
-        // Setup video
+        // Main image
+        rockDetail.image?.let { imageUrl ->
+            Glide.with(this).load(imageUrl).into(binding.ivRockImage)
+        }
+
+        // Additional images (local var to avoid unsafe calls)
+        val imagesList = rockDetail.images
+        if (!imagesList.isNullOrEmpty()) {
+            val additionalImages = imagesList.joinToString("\n")
+            binding.tvRockAdditionalImages.text = getString(
+                R.string.additional_images_label,
+                additionalImages
+            )
+        } else {
+            binding.tvRockAdditionalImages.text = getString(R.string.no_additional_images)
+        }
+
+        // Video
         rockDetail.video?.let { videoUrl ->
             val videoUri = Uri.parse(videoUrl)
             binding.vvRockVideo.setVideoURI(videoUri)
@@ -180,22 +204,68 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
             binding.vvRockVideo.start()
         }
 
-        // Set up map coordinates
+        // Coordinates
         rockLatitude = rockDetail.latitude
         rockLongitude = rockDetail.longitude
         googleMap?.let { updateMapMarker(it) }
 
-        // Display frequently asked questions
-        // Use a local val to avoid the "smart cast" error
-        val faqList = rockDetail.frequentlyAskedQuestions
-        if (!faqList.isNullOrEmpty()) {
-            val faqsText = faqList.joinToString(
+        // Physical properties
+        val phys = rockDetail.physicalProperties
+        if (phys != null) {
+            val crystalSystem = phys.ppCrystalSystem ?: getString(R.string.unknown)
+            val luster = phys.ppLuster ?: getString(R.string.unknown)
+            val streak = phys.ppStreak ?: getString(R.string.unknown)
+            val tenacity = phys.ppTenacity ?: getString(R.string.unknown)
+            val cleavage = phys.ppCleavage ?: getString(R.string.unknown)
+            val fracture = phys.ppFracture ?: getString(R.string.unknown)
+            val density = phys.ppDensity ?: getString(R.string.unknown)
+
+            binding.tvRockPhysicalProperties.text = """
+                Crystal System: $crystalSystem
+                Luster: $luster
+                Streak: $streak
+                Tenacity: $tenacity
+                Cleavage: $cleavage
+                Fracture: $fracture
+                Density: $density
+            """.trimIndent()
+        } else {
+            binding.tvRockPhysicalProperties.text = getString(R.string.no_physical_properties)
+        }
+
+        // Chemical properties
+        val chem = rockDetail.chemicalProperties
+        if (chem != null) {
+            val classification = chem.cpChemicalClassification ?: getString(R.string.unknown)
+            val formula = chem.cpFormula ?: getString(R.string.unknown)
+
+            // Use local variable for commonImpurities
+            val impuritiesList = chem.cpCommonImpurities
+            val commonImpurities = if (!impuritiesList.isNullOrEmpty()) {
+                impuritiesList.joinToString()
+            } else {
+                getString(R.string.unknown)
+            }
+
+            binding.tvRockChemicalProperties.text = """
+                Classification: $classification
+                Formula: $formula
+                Common Impurities: $commonImpurities
+            """.trimIndent()
+        } else {
+            binding.tvRockChemicalProperties.text = getString(R.string.no_chemical_properties)
+        }
+
+        // FAQs (use local var to avoid unsafe calls)
+        val faqsList = rockDetail.frequentlyAskedQuestions
+        if (!faqsList.isNullOrEmpty()) {
+            val faqsBulleted = faqsList.joinToString(
                 separator = "\n• ",
                 prefix = "• "
             )
-            binding.tvRockFaq.text = faqsText
+            binding.tvRockFaqs.text = faqsBulleted
         } else {
-            binding.tvRockFaq.text = getString(R.string.no_faq_found)
+            binding.tvRockFaqs.text = getString(R.string.no_faqs)
         }
     }
 
@@ -213,6 +283,22 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                     .title(binding.tvRockTitle.text.toString())
             )
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10f))
+        }
+    }
+
+    private fun openRouteInGoogleMaps() {
+        if (rockLatitude != null && rockLongitude != null) {
+            val gmmIntentUri = Uri.parse("google.navigation:q=$rockLatitude,$rockLongitude")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
+                setPackage("com.google.android.apps.maps")
+            }
+            if (mapIntent.resolveActivity(packageManager) != null) {
+                startActivity(mapIntent)
+            } else {
+                Toast.makeText(this, R.string.google_maps_not_installed, Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, R.string.coordinates_missing, Toast.LENGTH_SHORT).show()
         }
     }
 }

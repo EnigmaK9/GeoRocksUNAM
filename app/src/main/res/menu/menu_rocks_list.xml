@@ -1,9 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Item existente para logout -->
     <item
         android:id="@+id/action_logout"
         android:icon="@drawable/ic_logout"
         android:title="@string/logout"
         app:showAsAction="always" />
+
+    <!-- Nuevo item para búsqueda -->
+    <item
+        android:id="@+id/action_search"
+        android:title="@string/menu_search"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="always|collapseActionView"
+        app:actionViewClass="android.widget.SearchView"/>
 </menu>

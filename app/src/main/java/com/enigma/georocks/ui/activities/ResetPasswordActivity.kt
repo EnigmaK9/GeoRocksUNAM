@@ -19,9 +19,9 @@ class ResetPasswordActivity : AppCompatActivity() {
         binding = ActivityResetPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Configurar la Toolbar (si está presente en el layout)
+        // Configure the Toolbar (if present in the layout)
         setSupportActionBar(binding.toolbarResetPassword)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Mostrar botón de retroceso
+        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back button
 
         auth = FirebaseAuth.getInstance()
 
@@ -31,16 +31,16 @@ class ResetPasswordActivity : AppCompatActivity() {
                 if (isValidEmail(email)) {
                     sendResetEmail(email)
                 } else {
-                    Toast.makeText(this, "Por favor, ingresa un correo electrónico válido", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(this, "Por favor, ingresa tu correo electrónico", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter your email address", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Manejar el botón de retroceso en la Toolbar
+        // Handle the back button in the Toolbar
         return when (item.itemId) {
             android.R.id.home -> {
                 NavUtils.navigateUpFromSameTask(this)
@@ -51,21 +51,21 @@ class ResetPasswordActivity : AppCompatActivity() {
     }
 
     private fun sendResetEmail(email: String) {
-        // Mostrar ProgressBar
+        // Show ProgressBar
         binding.progressBarReset.visibility = android.view.View.VISIBLE
         binding.btnSendResetEmail.isEnabled = false
 
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
-                // Ocultar ProgressBar
+                // Hide ProgressBar
                 binding.progressBarReset.visibility = android.view.View.GONE
                 binding.btnSendResetEmail.isEnabled = true
 
                 if (task.isSuccessful) {
-                    Snackbar.make(binding.resetPasswordCoordinatorLayout, "Correo de restablecimiento enviado", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(binding.resetPasswordCoordinatorLayout, "Reset email sent", Snackbar.LENGTH_LONG).show()
                     finish()
                 } else {
-                    val errorMessage = task.exception?.message ?: "Error al enviar correo de restablecimiento"
+                    val errorMessage = task.exception?.message ?: "Error sending reset email"
                     Snackbar.make(binding.resetPasswordCoordinatorLayout, errorMessage, Snackbar.LENGTH_LONG).show()
                 }
             }

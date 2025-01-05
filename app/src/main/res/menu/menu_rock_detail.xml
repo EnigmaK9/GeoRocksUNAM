@@ -1,10 +1,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- Opción para cerrar sesión -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
         android:orderInCategory="100"
         app:showAsAction="always"
         android:icon="@drawable/ic_logout" />
+
+    <!-- Nueva opción para mostrar ruta hacia la roca -->
+    <item
+        android:id="@+id/action_route"
+        android:title="Route to Rock"
+        android:orderInCategory="101"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_directions" />
 </menu>

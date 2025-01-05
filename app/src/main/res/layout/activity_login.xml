@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/white">
+    android:background="@color/primary">
 
     <LinearLayout
         android:id="@+id/ll_login_container"
@@ -20,7 +20,7 @@
             android:src="@drawable/logo"
             android:background="@color/contrast_background"
             android:contentDescription="@string/app_logo"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="32dp" />
 
         <EditText
             android:id="@+id/et_email"
@@ -32,7 +32,7 @@
             android:drawableStart="@drawable/ic_email"
             android:drawablePadding="8dp"
             android:background="@drawable/edit_text_background"
-            android:textColor="@color/high_contrast_text"
+            android:textColor="@color/rocky_text_color"
             android:layout_marginBottom="16dp" />
 
         <EditText
@@ -45,40 +45,17 @@
             android:drawableStart="@drawable/ic_password"
             android:drawablePadding="8dp"
             android:background="@drawable/edit_text_background"
-            android:textColor="@color/high_contrast_text"
+            android:textColor="@color/rocky_text_color"
             android:layout_marginBottom="24dp" />
-
-        <TextView
-            android:id="@+id/tvForgotPassword"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/forgot_password"
-            android:textColor="@color/primary_color"
-            android:layout_marginBottom="16dp"
-            android:layout_gravity="center_horizontal"
-            android:textStyle="italic"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp" />
 
         <Button
             android:id="@+id/btn_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/login_button"
-            android:backgroundTint="@color/primary_color"
+            android:backgroundTint="@color/rockyAppbarEnd"
             android:textColor="@color/high_contrast_white"
             android:padding="12dp"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:id="@+id/tv_register"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/register_prompt"
-            android:textColor="@color/primary_dark_color"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp" />
 
         <Button
@@ -90,6 +67,30 @@
             android:textColor="@color/high_contrast_white"
             android:padding="12dp"
             android:drawableStart="@drawable/ic_google"
-            android:drawablePadding="8dp" />
+            android:drawablePadding="8dp"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:id="@+id/tv_register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/register_prompt"
+            android:textColor="@color/rocky_text_color"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/forgot_password"
+            android:textColor="@color/rocky_text_color"
+            android:layout_marginBottom="16dp"
+            android:layout_gravity="center_horizontal"
+            android:textStyle="italic"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp" />
     </LinearLayout>
 </ScrollView>

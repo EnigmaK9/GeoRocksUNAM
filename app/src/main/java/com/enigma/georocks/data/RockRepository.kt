@@ -10,9 +10,9 @@ class RockRepository(private val retrofit: Retrofit) {
 
     private val rocksApi: RocksApi = retrofit.create(RocksApi::class.java)
 
-    // Método para obtener la lista de rocas
+    // Method to fetch the list of rocks
     fun getRocksApiary(): Call<MutableList<RockDto>> = rocksApi.getRocksApiary()
 
-    // Método para obtener el detalle de una roca específica
+    // Method to fetch the details of a specific rock
     fun getRockDetail(id: String): Call<RockDetailDto> = rocksApi.getRockDetailApiary(id)
 }

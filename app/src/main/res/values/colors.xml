@@ -9,7 +9,7 @@
     <color name="high_contrast_text">#000000</color>
 
     <!-- Other colors -->
-    <color name="white">#ffffff</color>
+    <color name="white">#FFFFFF</color>
     <color name="secondary_text_color">#757575</color>
 
     <color name="rockyAppbarStart">#4A4A48</color>

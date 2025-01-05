@@ -2,35 +2,49 @@ package com.enigma.georocks.ui.adapters
 
 import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.enigma.georocks.R
 import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.RockElementBinding
-import com.bumptech.glide.Glide
 
 class RocksViewHolder(
     private val binding: RockElementBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
+    // The context is retrieved from the root view
+    private val context = binding.root.context
+
     fun bind(rock: RockDto) {
-        // Log inicial para depurar los valores del objeto RockDto
+        // A log message is recorded to confirm the rock title
         Log.d("RocksViewHolder", "Rock Title: ${rock.title}")
 
-        // Asignar los valores iniciales a los TextViews
-        binding.tvTitle.text = rock.title ?: "Name Unknown"
-        binding.tvType.text = "Loading Type..." // Placeholder inicial
-        binding.tvColor.text = "Loading Color..." // Placeholder inicial
+        // The title is assigned, allowing for a fallback if it's empty (though it's non-null)
+        binding.tvTitle.text = rock.title.ifBlank {
+            context.getString(R.string.unknown_title)
+        }
 
-        // Cargar la imagen usando Glide con 'thumbnail'
-        Glide.with(binding.root.context)
-            .load(rock.thumbnail)  // Usa thumbnail en lugar de image
+        // A placeholder string resource is used for the type
+        binding.tvType.text = context.getString(R.string.loading_type)
+
+        // A placeholder string resource is used for the color
+        binding.tvColor.text = context.getString(R.string.loading_color)
+
+        // Glide is used to load the thumbnail into the ImageView
+        Glide.with(context)
+            .load(rock.thumbnail)
             .into(binding.ivThumbnail)
     }
 
-    // Método para actualizar los detalles adicionales de la roca
     fun updateDetails(type: String?, color: String?) {
-        binding.tvType.text = "A member of: ${type ?: "Unknown Type"}"
-        binding.tvColor.text = "Color: ${color ?: "Unknown Color"}"
+        // A string resource with a placeholder is used for the "member of" text
+        val safeType = type ?: context.getString(R.string.unknown_type)
+        binding.tvType.text = context.getString(R.string.member_of_format, safeType)
 
-        // Log para confirmar la actualización de detalles
+        // A string resource with a placeholder is used for the color
+        val safeColor = color ?: context.getString(R.string.unknown_color)
+        binding.tvColor.text = context.getString(R.string.color_format, safeColor)
+
+        // A log message is recorded to confirm that details were updated
         Log.d("RocksViewHolder", "Updated Details - Type: $type, Color: $color")
     }
 }
