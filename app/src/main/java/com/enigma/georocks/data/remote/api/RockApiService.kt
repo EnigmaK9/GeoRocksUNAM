@@ -1,0 +1,17 @@
+package com.enigma.georocks.data.remote.api
+
+import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
+import retrofit2.http.GET
+import retrofit2.http.Path
+
+interface RockApiService {
+
+    // Endpoint Rock list
+    @GET("rocks")
+    suspend fun getRocks(): MutableList<RockDto>
+
+    // Endpoint rock detail
+    @GET("rocks/rock_detail/{id}")
+    suspend fun getRockDetail(@Path("id") id: String): RockDetailDto
+}

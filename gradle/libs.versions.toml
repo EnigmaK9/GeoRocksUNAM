@@ -16,6 +16,8 @@ converter-gson = "2.11.0"
 logging-interceptor = "4.10.0"
 glide = "4.13.2"
 picasso = "2.71828"
+room-compiler-version = "<version>"
+room-runtime = "<version>"
 roundedimageview = "2.3.0"
 junit = "4.13.2"
 androidx-junit = "1.2.1"
@@ -28,11 +30,16 @@ firebase-common-ktx = "21.0.0"
 
 # Google Services Plugin
 google-services-plugin = "4.4.2"
+room-common = "2.6.1"
+room-compiler = "2.6.1"
+room-ktx = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-espresso-core-v351 = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core-version" }
+androidx-room-compiler-vversion = { module = "androidx.room:room-compiler", version.ref = "room-compiler-version" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room-runtime" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 firebase-bom-v3223 = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom-version" }
 glide-v4151 = { module = "com.github.bumptech.glide:glide", version.ref = "glide-version" }
@@ -60,6 +67,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
 #noinspection SimilarGradleDependency
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "room-common" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room-compiler" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room-ktx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

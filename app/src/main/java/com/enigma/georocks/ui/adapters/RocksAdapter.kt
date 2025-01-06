@@ -1,3 +1,5 @@
+// File path: app/src/main/java/com/enigma/georocks/ui/adapters/RocksAdapter.kt
+
 package com.enigma.georocks.ui.adapters
 
 import android.content.Intent
@@ -25,22 +27,22 @@ class RocksAdapter(
     override fun onBindViewHolder(holder: RocksViewHolder, position: Int) {
         val rock = rocks[position]
 
-        // Bind the initial rock data
+        // Initial rock data is bound
         holder.bind(rock)
 
-        // Load additional details using the rock ID
+        // Additional details are loaded using the rock ID
         rock.id?.let { loadRockDetails(it, holder) }
 
-        // Set the click listener for the whole item
+        // Click listener is set for the entire item
         holder.itemView.setOnClickListener {
-            // Play the click sound
+            // Click sound is played
             val mediaPlayer = MediaPlayer.create(holder.itemView.context, R.raw.click_sound)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener { mp ->
                 mp.release()
             }
 
-            // Navigate to RockDetailActivity
+            // Navigation to RockDetailActivity is initiated
             val context = holder.itemView.context
             val intent = Intent(context, RockDetailActivity::class.java).apply {
                 putExtra("ROCK_ID", rock.id)
@@ -49,7 +51,7 @@ class RocksAdapter(
         }
     }
 
-    // Method to update the data in the adapter
+    // Data in the adapter is updated
     fun updateData(newRocks: List<RockDto>) {
         this.rocks = newRocks
         notifyDataSetChanged()

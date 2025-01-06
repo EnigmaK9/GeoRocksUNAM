@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
+    id("kotlin-kapt") // The kapt plugin is applied here
 }
 
 android {
@@ -18,7 +19,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // Leer MAPS_API_KEY desde local.properties
+        // The MAPS_API_KEY is read from local.properties
         val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
@@ -32,6 +33,7 @@ android {
 
     buildTypes {
         release {
+            // Minification is disabled for the release build type
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -40,55 +42,60 @@ android {
         }
     }
     compileOptions {
+        // Java 17 compatibility is configured
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
+        // The JVM target is set to 17 for Kotlin
         jvmTarget = "17"
     }
 
     buildFeatures {
+        // View binding is enabled
         viewBinding = true
     }
 }
 
 dependencies {
-
-
-
+    // Core Android dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
-    // Retrofit y Gson
+    // Retrofit and Gson are used for networking and JSON conversion
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
-    // Interceptor
+    // Logging interceptor for HTTP requests
     implementation(libs.logging.interceptor)
 
-    // Glide y Picasso
+    // Glide and Picasso are used for image loading
     implementation(libs.glide.v4151)
-    annotationProcessor(libs.compiler)
-    implementation(libs.glide)
     implementation(libs.picasso)
 
-    // Corutinas con alcance lifecycle
+    // Room database dependencies
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler) // Annotation processing with kapt for Room
+    implementation(libs.androidx.room.ktx)
+
+    // Lifecycle-aware components
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    // Imágenes con bordes redondeados
+    // Rounded image views
     implementation(libs.roundedimageview)
 
-    // Google Maps
+    // Google Maps API
     implementation(libs.play.services.maps)
 
     // Firebase Authentication
-    implementation(platform(libs.firebase.bom.v3223)) // Replace with the desired version
+    implementation(platform(libs.firebase.bom.v3223)) // Firebase BOM is used
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.common.ktx)
 
+    // Testing libraries
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core.v351)

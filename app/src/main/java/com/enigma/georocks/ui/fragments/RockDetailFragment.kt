@@ -1,21 +1,25 @@
 package com.enigma.georocks.ui.fragments
 
-import android.net.Uri // Import for handling URIs
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.MediaController // Import for media controls
-import android.widget.Toast
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.MediaController
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.enigma.georocks.R
 import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.data.db.FavoriteRepository
 import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.FragmentRockDetailBinding
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RockDetailFragment : Fragment() {
 
@@ -23,7 +27,10 @@ class RockDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var repository: RockRepository
+    private lateinit var favoriteRepo: FavoriteRepository
+
     private var rockId: String? = null
+    private var isFavorite: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,77 +42,110 @@ class RockDetailFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentRockDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         repository = (requireActivity().application as GeoRocksApp).repository
+        favoriteRepo = (requireActivity().application as GeoRocksApp).favoriteRepository
 
         rockId?.let { id ->
-            repository.getRockDetail(id).enqueue(object : Callback<RockDetailDto> {
-                override fun onResponse(
-                    call: Call<RockDetailDto>,
-                    response: Response<RockDetailDto>
-                ) {
-                    if (response.isSuccessful) {
-                        val rockDetail = response.body()
-                        if (rockDetail != null) {
-                            // Update UI elements with rock details
-                            binding.tvTitle.text = rockDetail.title
-                            binding.tvLongDesc.text = rockDetail.longDesc
-                            // Update other UI elements as needed...
+            lifecycleScope.launch {
+                try {
+                    val rockDetail: RockDetailDto = repository.getRockDetail(id)
+                    withContext(Dispatchers.Main) {
+                        binding.tvTitle.text = rockDetail.title
+                        binding.tvLongDesc.text = rockDetail.longDesc
+                        binding.tvType.text = "Type: ${rockDetail.aMemberOf}"
+                        binding.tvColor.text = "Color: ${rockDetail.color}"
 
-                            // Set up the VideoView
-                            if (!rockDetail.video.isNullOrEmpty()) {
-                                val videoUri = Uri.parse(rockDetail.video)
-                                binding.vvRockVideo.setVideoURI(videoUri)
-
-                                // Add media controls
-                                val mediaController = MediaController(requireContext())
-                                mediaController.setAnchorView(binding.vvRockVideo)
-                                binding.vvRockVideo.setMediaController(mediaController)
-
-                                // Start the video
-                                binding.vvRockVideo.start()
-                            } else {
-                                // Handle the case where there's no video URL
-                                Toast.makeText(
-                                    requireContext(),
-                                    "No video available for this rock",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                binding.vvRockVideo.visibility = View.GONE
-                            }
-
-                            Log.d("RockDetailFragment", "Rock details: $rockDetail")
+                        if (!rockDetail.video.isNullOrEmpty()) {
+                            val videoUri = Uri.parse(rockDetail.video)
+                            binding.vvRockVideo.setVideoURI(videoUri)
+                            val mediaController = MediaController(requireContext())
+                            mediaController.setAnchorView(binding.vvRockVideo)
+                            binding.vvRockVideo.setMediaController(mediaController)
+                            binding.vvRockVideo.start()
                         } else {
                             Toast.makeText(
                                 requireContext(),
-                                "Rock details are missing",
+                                "No video available for this rock",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            binding.vvRockVideo.visibility = View.GONE
                         }
-                    } else {
-                        Log.e(
-                            "RockDetailFragment",
-                            "Error fetching rock details: ${response.code()} ${response.message()}"
-                        )
+
+                        isFavorite = favoriteRepo.isRockFavorited(id)
+                        updateHeartIcon(isFavorite)
+                        Log.d("RockDetailFragment", "Rock details: $rockDetail")
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Error retrieving rock details",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    Log.e("RockDetailFragment", "Error fetching rock details", e)
+                }
+            }
+        }
+
+        binding.ivFavorite.setOnClickListener {
+            rockId?.let { id ->
+                lifecycleScope.launch {
+                    try {
+                        if (!isFavorite) {
+                            val rockDetail = repository.getRockDetail(id)
+                            val rockDto = RockDto(
+                                id = id,
+                                title = rockDetail.title ?: "Unknown",
+                                thumbnail = rockDetail.image ?: ""
+                            )
+                            repository.addToFavorites(rockDto)
+                            isFavorite = true
+                            updateHeartIcon(isFavorite)
+                            Toast.makeText(
+                                requireContext(),
+                                "Added to favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            Log.d("RockDetailFragment", "Rock ID $id added to favorites.")
+                        } else {
+                            val rockDto = RockDto(
+                                id = id,
+                                title = null,
+                                thumbnail = null
+                            )
+                            repository.removeFromFavorites(rockDto)
+                            isFavorite = false
+                            updateHeartIcon(isFavorite)
+                            Toast.makeText(
+                                requireContext(),
+                                "Removed from favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            Log.d("RockDetailFragment", "Rock ID $id removed from favorites.")
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), "Operation failed", Toast.LENGTH_SHORT)
+                            .show()
+                        Log.e("RockDetailFragment", "Favorite operation failed", e)
                     }
                 }
+            }
+        }
+    }
 
-                override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Error retrieving rock details",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.e("RockDetailFragment", "Error fetching rock details", t)
-                }
-            })
+    private fun updateHeartIcon(favorite: Boolean) {
+        if (favorite) {
+            binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled)
+        } else {
+            binding.ivFavorite.setImageResource(R.drawable.ic_favorite_border)
         }
     }
 

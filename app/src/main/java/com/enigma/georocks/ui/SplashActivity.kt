@@ -1,3 +1,5 @@
+// File path: app/src/main/java/com/enigma/georocks/ui/SplashActivity.kt
+
 package com.enigma.georocks.ui
 
 import android.content.Intent
@@ -22,10 +24,10 @@ class SplashActivity : AppCompatActivity() {
         binding.root.postDelayed({
             val currentUser = auth.currentUser
             if (currentUser != null) {
-                // Usuario autenticado
+                // Authenticated user
                 startActivity(Intent(this, MainActivity::class.java))
             } else {
-                // Usuario no autenticado
+                // Unauthenticated user
                 startActivity(Intent(this, LoginActivity::class.java))
             }
             finish()

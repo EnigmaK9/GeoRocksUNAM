@@ -97,6 +97,10 @@
 
     <string name="member_of_format">A member of: %1$s</string>
     <string name="color_format">Color: %1$s</string>
+    <string name="favorite">Favorite Rock.</string>
+    <string name="route_to_rock">Route to Rock.</string>
+    <string name="search">Search</string>
+    <string name="view_favorites">View Favorites</string>
 
 
 </resources>

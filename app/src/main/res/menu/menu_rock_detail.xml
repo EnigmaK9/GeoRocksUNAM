@@ -1,19 +1,27 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Opción para cerrar sesión -->
+    <!-- Option to toggle favorite status -->
+    <item
+        android:id="@+id/action_favorite_rock"
+        android:title="@string/favorite"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_favorite_border" />
+
+    <!-- Option to display the route to the rock -->
+    <item
+        android:id="@+id/action_route"
+        android:title="@string/route_to_rock"
+        android:orderInCategory="101"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_directions" />
+
+    <!-- Option for logging out -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
-        android:orderInCategory="100"
+        android:orderInCategory="102"
         app:showAsAction="always"
         android:icon="@drawable/ic_logout" />
-
-    <!-- Nueva opción para mostrar ruta hacia la roca -->
-    <item
-        android:id="@+id/action_route"
-        android:title="Route to Rock"
-        android:orderInCategory="101"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_directions" />
 </menu>
