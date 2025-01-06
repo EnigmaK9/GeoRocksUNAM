@@ -21,6 +21,7 @@
     <string name="type_label">Type: %1$s</string>
     <string name="unknown_type">Unknown Type</string>
     <string name="color_label">Color: %1$s</string>
+    <string name="color_format">@string/color_label</string>
     <string name="unknown_color">Unknown Color</string>
     <string name="hardness_label">Hardness: %1$s</string>
     <string name="formula_label">Formula: %1$s</string>
@@ -54,7 +55,7 @@
     <string name="email_hint">Enter your email</string>
     <string name="password_hint">Enter your password</string>
     <string name="login_button">Login</string>
-    <string name="register_prompt">Register</string>
+    <string name="register_prompt">@string/register</string>
     <string name="google_sign_in_button">Sign in with Google</string>
     <string name="close_session">Close session</string>
     <string name="forgot_password">Forgot password?</string>
@@ -68,7 +69,7 @@
     <!-- Register Activity -->
     <string name="register">Register</string>
     <string name="register_title">Register User</string>
-    <string name="register_button">Register</string>
+    <string name="register_button">@string/register</string>
 
     <!-- Registration Messages -->
     <string name="registration_success">Registration successful</string>
@@ -81,7 +82,7 @@
     <string name="invalid_email_address">Invalid email address.</string>
 
     <!-- Main Menu -->
-    <string name="action_register">Register</string>
+    <string name="action_register">@string/register</string>
 
     <!-- Additional Feedback Messages -->
     <string name="rock_details_loaded">Rock details loaded successfully</string>
@@ -96,11 +97,8 @@
     <string name="loading_color">Loading color…</string>
 
     <string name="member_of_format">A member of: %1$s</string>
-    <string name="color_format">Color: %1$s</string>
     <string name="favorite">Favorite Rock.</string>
     <string name="route_to_rock">Route to Rock.</string>
     <string name="search">Search</string>
     <string name="view_favorites">View Favorites</string>
-
-
 </resources>

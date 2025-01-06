@@ -1,3 +1,5 @@
+// /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/data/remote/model/RockDetailDto.kt
+
 package com.enigma.georocks.data.remote.model
 
 import com.google.gson.annotations.SerializedName

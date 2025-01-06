@@ -1,3 +1,5 @@
+// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/LoginActivity.kt
+
 package com.enigma.georocks.ui.activities
 
 import android.content.Intent

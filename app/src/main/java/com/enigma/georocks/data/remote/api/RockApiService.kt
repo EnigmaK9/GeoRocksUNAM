@@ -1,3 +1,4 @@
+///home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/data/remote/api/RockApiService.kt
 package com.enigma.georocks.data.remote.api
 
 import com.enigma.georocks.data.remote.model.RockDetailDto
@@ -8,7 +9,7 @@ import retrofit2.http.Path
 interface RockApiService {
 
     // Endpoint Rock list
-    @GET("rocks")
+    @GET("rocks/rock_list")
     suspend fun getRocks(): MutableList<RockDto>
 
     // Endpoint rock detail

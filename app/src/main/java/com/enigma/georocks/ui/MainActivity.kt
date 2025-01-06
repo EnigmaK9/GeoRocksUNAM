@@ -1,5 +1,5 @@
 // ============================
-// MainActivity.kt
+// file path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/MainActivity.kt
 // ============================
 
 package com.enigma.georocks.ui
