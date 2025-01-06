@@ -1,0 +1,2919 @@
+---
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Necessary permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:name=".application.GeoRocksApp"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GeoRocks"
+        tools:targetApi="31">
+
+        <!-- Meta-data  Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <!-- SplashActivity as Home Screen -->
+        <activity
+            android:name=".ui.SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Application Activities -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.activities.RockDetailActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.activities.LoginActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.activities.ResetPasswordActivity" />
+
+        <activity
+            android:name=".ui.activities.RegisterActivity" />
+    </application>
+
+</manifest>
+---
+// File path: app/src/main/java/com/enigma/georocks/application/GeoRocksApp.kt
+
+package com.enigma.georocks.application
+
+import android.app.Application
+import androidx.room.Room
+import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.data.db.FavoriteRepository
+import com.enigma.georocks.data.db.GeoRocksDatabase
+import com.enigma.georocks.data.remote.api.RockApiService
+import com.enigma.georocks.data.remote.RetrofitHelper
+import retrofit2.Retrofit
+
+class GeoRocksApp : Application() {
+
+    lateinit var repository: RockRepository
+        private set
+
+    lateinit var favoriteRepository: FavoriteRepository
+        private set
+
+    override fun onCreate() {
+        super.onCreate()
+
+        // Retrofit is initialized
+        val retrofit: Retrofit = RetrofitHelper().getRetrofit()
+        val apiService = retrofit.create(RockApiService::class.java)
+
+        // Room database is initialized
+        val database = Room.databaseBuilder(
+            applicationContext,
+            GeoRocksDatabase::class.java,
+            "georocks_database"
+        ).build()
+
+        val favoriteRockDao = database.favoriteRockDao()
+
+        // Repositories are initialized
+        repository = RockRepository(apiService, favoriteRockDao)
+        favoriteRepository = FavoriteRepository(favoriteRockDao)
+    }
+}
+---
+package com.enigma.georocks.data.db.model
+
+class RockEntity {
+}
+---
+// ===============================================================
+// File path: app/src/main/java/com/enigma/georocks/data/db/FavoriteDatabase.kt
+// The Room database class is declared here. It includes the FavoriteRockDao.
+// ===============================================================
+
+package com.enigma.georocks.data.db
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+
+// The version number is incremented each time the schema is changed
+@Database(entities = [FavoriteRockEntity::class], version = 1, exportSchema = false)
+// This abstract class is declared for Room to generate the database
+abstract class FavoriteDatabase : RoomDatabase() {
+
+    // A reference to the DAO is provided
+    abstract fun favoriteRockDao(): FavoriteRockDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: FavoriteDatabase? = null
+
+        // A singleton pattern is used to retrieve the database instance
+        fun getDatabase(context: Context): FavoriteDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    FavoriteDatabase::class.java,
+                    "favorite_rocks_db"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
+---
+// File path: app/src/main/java/com/enigma/georocks/data/db/FavoriteRepository.kt
+
+package com.enigma.georocks.data.db
+
+import com.enigma.georocks.data.remote.model.RockDto
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+// Operations related to favorite rocks are managed here
+class FavoriteRepository(private val dao: FavoriteRockDao) {
+
+    // A rock is added to favorites
+    suspend fun addToFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
+        val entity = FavoriteRockEntity(
+            rockId = rock.id,
+            title = rock.title,
+            thumbnail = rock.thumbnail
+        )
+        dao.insertFavorite(entity)
+    }
+
+    // A rock is removed from favorites
+    suspend fun removeFromFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
+        val entity = FavoriteRockEntity(
+            rockId = rock.id,
+            title = rock.title,
+            thumbnail = rock.thumbnail
+        )
+        dao.deleteFavorite(entity)
+    }
+
+    // It is determined if a rock is favorited
+    suspend fun isRockFavorited(rockId: String): Boolean = withContext(Dispatchers.IO) {
+        dao.getFavoriteById(rockId) != null
+    }
+
+    // All favorite rocks are retrieved
+    suspend fun getAllFavorites(): List<FavoriteRockEntity> = withContext(Dispatchers.IO) {
+        dao.getAllFavorites()
+    }
+}
+---
+// File path: app/src/main/java/com/enigma/georocks/data/db/FavoriteRockDao.kt
+
+package com.enigma.georocks.data.db
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Delete
+
+@Dao
+interface FavoriteRockDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFavorite(rock: FavoriteRockEntity)
+
+    @Delete
+    suspend fun deleteFavorite(rock: FavoriteRockEntity)
+
+    @Query("SELECT * FROM favorite_rocks WHERE rockId = :rockId LIMIT 1")
+    suspend fun getFavoriteById(rockId: String): FavoriteRockEntity?
+
+    @Query("SELECT * FROM favorite_rocks")
+    suspend fun getAllFavorites(): List<FavoriteRockEntity>
+}
+---
+// ===============================================================
+// File path: app/src/main/java/com/enigma/georocks/data/db/FavoriteRockEntity.kt
+// This entity is created to store minimal information about a favorited rock.
+//
+// It is recommended to add columns as needed if more info is to be shown offline.
+//
+// Comments are written in passive voice for debugging convenience.
+// ===============================================================
+
+package com.enigma.georocks.data.db
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "favorite_rocks")
+// This entity class is declared for Room to store favorites locally
+data class FavoriteRockEntity(
+    @PrimaryKey
+    // This field is used for storing the unique rock ID
+    val rockId: String,
+    // This field is used for storing the rock's title
+    val title: String?,
+    // This field is used for storing the rock's thumbnail
+    val thumbnail: String?
+)
+---
+// File path: app/src/main/java/com/enigma/georocks/data/db/GeoRocksDatabase.kt
+
+package com.enigma.georocks.data.db
+
+import androidx.room.Database
+import androidx.room.RoomDatabase
+
+@Database(entities = [FavoriteRockEntity::class], version = 1, exportSchema = false)
+// This abstract class is declared to create the Room database instance
+abstract class GeoRocksDatabase : RoomDatabase() {
+    // Abstract function to access the FavoriteRockDao
+    abstract fun favoriteRockDao(): FavoriteRockDao
+}
+---
+package com.enigma.georocks.data.db
+
+interface RockDao {
+}
+---
+package com.enigma.georocks.data.remote.api
+
+import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
+import retrofit2.http.GET
+import retrofit2.http.Path
+
+interface RockApiService {
+
+    // Endpoint Rock list
+    @GET("rocks")
+    suspend fun getRocks(): MutableList<RockDto>
+
+    // Endpoint rock detail
+    @GET("rocks/rock_detail/{id}")
+    suspend fun getRockDetail(@Path("id") id: String): RockDetailDto
+}
+
+package com.enigma.georocks.data.remote.model
+
+import com.google.gson.annotations.SerializedName
+
+data class RockDetailDto(
+    @SerializedName("title")
+    var title: String? = null,
+
+    @SerializedName("image")
+    var image: String? = null,
+
+    @SerializedName("video")
+    var video: String? = null,
+
+    @SerializedName("long_desc")
+    var longDesc: String? = null,
+
+    @SerializedName("a_member_of")
+    var aMemberOf: String? = null,
+
+    @SerializedName("also_known_as")
+    var alsoKnownAs: List<String>? = null,
+
+    @SerializedName("formula")
+    var formula: String? = null,
+
+    @SerializedName("hardness")
+    var hardness: Int? = null,
+
+    @SerializedName("color")
+    var color: String? = null,
+
+    @SerializedName("magnetic")
+    var magnetic: Boolean? = null,
+
+    @SerializedName("health_risks")
+    var healthRisks: String? = null,
+
+    @SerializedName("latitude")
+    var latitude: Double? = null,
+
+    @SerializedName("longitude")
+    var longitude: Double? = null,
+
+    @SerializedName("images")
+    var images: List<String>? = null,
+
+    @SerializedName("localities")
+    var localities: List<String>? = null,
+
+    @SerializedName("frequently_asked_questions")
+    var frequentlyAskedQuestions: List<String>? = null,
+
+    @SerializedName("physical_properties")
+    var physicalProperties: PhysicalProperties? = null,
+
+    @SerializedName("chemical_properties")
+    var chemicalProperties: ChemicalProperties? = null
+) {
+    data class PhysicalProperties(
+        @SerializedName("pp_crystal_system")
+        var ppCrystalSystem: String? = null,
+
+        @SerializedName("pp_colors")
+        var ppColors: List<String>? = null,
+
+        @SerializedName("pp_luster")
+        var ppLuster: String? = null,
+
+        @SerializedName("pp_diaphaneity")
+        var ppDiaphaneity: String? = null,
+
+        @SerializedName("pp_magnetic")
+        var ppMagnetic: Boolean? = null,
+
+        @SerializedName("pp_streak")
+        var ppStreak: String? = null,
+
+        @SerializedName("pp_hardness")
+        var ppHardness: Int? = null,
+
+        @SerializedName("pp_tenacity")
+        var ppTenacity: String? = null,
+
+        @SerializedName("pp_cleavage")
+        var ppCleavage: String? = null,
+
+        @SerializedName("pp_fracture")
+        var ppFracture: String? = null,
+
+        @SerializedName("pp_density")
+        var ppDensity: String? = null
+    )
+
+    data class ChemicalProperties(
+        @SerializedName("cp_chemical_classification")
+        var cpChemicalClassification: String? = null,
+
+        @SerializedName("cp_formula")
+        var cpFormula: String? = null,
+
+        @SerializedName("cp_elements_listed")
+        var cpElementsListed: List<String>? = null,
+
+        @SerializedName("cp_common_impurities")
+        var cpCommonImpurities: List<String>? = null
+    )
+}
+---
+// File path: app/src/main/java/com/enigma/georocks/data/remote/model/RockDto.kt
+
+package com.enigma.georocks.data.remote.model
+
+import com.google.gson.annotations.SerializedName
+
+data class RockDto(
+    @SerializedName("id") var id: String,
+    @SerializedName("thumbnail") var thumbnail: String?,
+    @SerializedName("title") var title: String? // Made nullable
+)
+---
+package com.enigma.georocks.data.remote
+
+import com.enigma.georocks.utils.Constants
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+class RetrofitHelper {
+    fun getRetrofit(): Retrofit {
+
+        val interceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY // Log detail level
+        }
+
+        val client = OkHttpClient.Builder().apply {
+            addInterceptor(interceptor)
+        }.build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.BASE_URL) // correct base URL
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create()) // Converter for JSON
+            .build()
+    }
+}
+---
+package com.enigma.georocks.data.remote
+
+import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Path
+
+interface RocksApi {
+
+    // Endpoint to get the list of rocks
+    @GET("rocks/rock_list")
+    fun getRocksApiary(): Call<MutableList<RockDto>>
+
+    // Endpoint to get the details of a specific rock
+    @GET("rocks/rock_detail/{id}")
+    fun getRockDetailApiary(
+        @Path("id") id: String
+    ): Call<RockDetailDto>
+}
+---
+/*
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package kotlin.collections
+
+import kotlin.internal.PlatformDependent
+
+/**
+ * Classes that inherit from this interface can be represented as a sequence of elements that can
+ * be iterated over.
+ * @param T the type of element being iterated over. The iterator is covariant in its element type.
+ */
+public interface Iterable<out T> {
+    /**
+     * Returns an iterator over the elements of this object.
+     */
+    public operator fun iterator(): Iterator<T>
+}
+
+/**
+ * Classes that inherit from this interface can be represented as a sequence of elements that can
+ * be iterated over and that supports removing elements during iteration.
+ * @param T the type of element being iterated over. The mutable iterator is invariant in its element type.
+ */
+public interface MutableIterable<out T> : Iterable<T> {
+    /**
+     * Returns an iterator over the elements of this sequence that supports removing elements during iteration.
+     */
+    override fun iterator(): MutableIterator<T>
+}
+
+/**
+ * A generic collection of elements. Methods in this interface support only read-only access to the collection;
+ * read/write access is supported through the [MutableCollection] interface.
+ * @param E the type of elements contained in the collection. The collection is covariant in its element type.
+ */
+public interface Collection<out E> : Iterable<E> {
+    // Query Operations
+    /**
+     * Returns the size of the collection.
+     */
+    public val size: Int
+
+    /**
+     * Returns `true` if the collection is empty (contains no elements), `false` otherwise.
+     */
+    public fun isEmpty(): Boolean
+
+    /**
+     * Checks if the specified element is contained in this collection.
+     */
+    public operator fun contains(element: @UnsafeVariance E): Boolean
+
+    override fun iterator(): Iterator<E>
+
+    // Bulk Operations
+    /**
+     * Checks if all elements in the specified collection are contained in this collection.
+     */
+    public fun containsAll(elements: Collection<@UnsafeVariance E>): Boolean
+}
+
+/**
+ * A generic collection of elements that supports adding and removing elements.
+ *
+ * @param E the type of elements contained in the collection. The mutable collection is invariant in its element type.
+ */
+public interface MutableCollection<E> : Collection<E>, MutableIterable<E> {
+    // Query Operations
+    override fun iterator(): MutableIterator<E>
+
+    // Modification Operations
+    /**
+     * Adds the specified element to the collection.
+     *
+     * @return `true` if the element has been added, `false` if the collection does not support duplicates
+     * and the element is already contained in the collection.
+     */
+    public fun add(element: E): Boolean
+
+    /**
+     * Removes a single instance of the specified element from this
+     * collection, if it is present.
+     *
+     * @return `true` if the element has been successfully removed; `false` if it was not present in the collection.
+     */
+    public fun remove(element: E): Boolean
+
+    // Bulk Modification Operations
+    /**
+     * Adds all of the elements of the specified collection to this collection.
+     *
+     * @return `true` if any of the specified elements was added to the collection, `false` if the collection was not modified.
+     */
+    public fun addAll(elements: Collection<E>): Boolean
+
+    /**
+     * Removes all of this collection's elements that are also contained in the specified collection.
+     *
+     * @return `true` if any of the specified elements was removed from the collection, `false` if the collection was not modified.
+     */
+    public fun removeAll(elements: Collection<E>): Boolean
+
+    /**
+     * Retains only the elements in this collection that are contained in the specified collection.
+     *
+     * @return `true` if any element was removed from the collection, `false` if the collection was not modified.
+     */
+    public fun retainAll(elements: Collection<E>): Boolean
+
+    /**
+     * Removes all elements from this collection.
+     */
+    public fun clear(): Unit
+}
+
+/**
+ * A generic ordered collection of elements. Methods in this interface support only read-only access to the list;
+ * read/write access is supported through the [MutableList] interface.
+ * @param E the type of elements contained in the list. The list is covariant in its element type.
+ */
+public interface List<out E> : Collection<E> {
+    // Query Operations
+
+    override val size: Int
+    override fun isEmpty(): Boolean
+    override fun contains(element: @UnsafeVariance E): Boolean
+    override fun iterator(): Iterator<E>
+
+    // Bulk Operations
+    override fun containsAll(elements: Collection<@UnsafeVariance E>): Boolean
+
+    // Positional Access Operations
+    /**
+     * Returns the element at the specified index in the list.
+     */
+    public operator fun get(index: Int): E
+
+    // Search Operations
+    /**
+     * Returns the index of the first occurrence of the specified element in the list, or -1 if the specified
+     * element is not contained in the list.
+     */
+    public fun indexOf(element: @UnsafeVariance E): Int
+
+    /**
+     * Returns the index of the last occurrence of the specified element in the list, or -1 if the specified
+     * element is not contained in the list.
+     */
+    public fun lastIndexOf(element: @UnsafeVariance E): Int
+
+    // List Iterators
+    /**
+     * Returns a list iterator over the elements in this list (in proper sequence).
+     */
+    public fun listIterator(): ListIterator<E>
+
+    /**
+     * Returns a list iterator over the elements in this list (in proper sequence), starting at the specified [index].
+     */
+    public fun listIterator(index: Int): ListIterator<E>
+
+    // View
+    /**
+     * Returns a view of the portion of this list between the specified [fromIndex] (inclusive) and [toIndex] (exclusive).
+     * The returned list is backed by this list, so non-structural changes in the returned list are reflected in this list, and vice-versa.
+     *
+     * Structural changes in the base list make the behavior of the view undefined.
+     */
+    public fun subList(fromIndex: Int, toIndex: Int): List<E>
+}
+
+/**
+ * A generic ordered collection of elements that supports adding and removing elements.
+ * @param E the type of elements contained in the list. The mutable list is invariant in its element type.
+ */
+public interface MutableList<E> : List<E>, MutableCollection<E> {
+    // Modification Operations
+    /**
+     * Adds the specified element to the end of this list.
+     *
+     * @return `true` because the list is always modified as the result of this operation.
+     */
+    override fun add(element: E): Boolean
+
+    override fun remove(element: E): Boolean
+
+    // Bulk Modification Operations
+    /**
+     * Adds all of the elements of the specified collection to the end of this list.
+     *
+     * The elements are appended in the order they appear in the [elements] collection.
+     *
+     * @return `true` if the list was changed as the result of the operation.
+     */
+    override fun addAll(elements: Collection<E>): Boolean
+
+    /**
+     * Inserts all of the elements of the specified collection [elements] into this list at the specified [index].
+     *
+     * @return `true` if the list was changed as the result of the operation.
+     */
+    public fun addAll(index: Int, elements: Collection<E>): Boolean
+
+    override fun removeAll(elements: Collection<E>): Boolean
+    override fun retainAll(elements: Collection<E>): Boolean
+    override fun clear(): Unit
+
+    // Positional Access Operations
+    /**
+     * Replaces the element at the specified position in this list with the specified element.
+     *
+     * @return the element previously at the specified position.
+     */
+    public operator fun set(index: Int, element: E): E
+
+    /**
+     * Inserts an element into the list at the specified [index].
+     */
+    public fun add(index: Int, element: E): Unit
+
+    /**
+     * Removes an element at the specified [index] from the list.
+     *
+     * @return the element that has been removed.
+     */
+    public fun removeAt(index: Int): E
+
+    // List Iterators
+    override fun listIterator(): MutableListIterator<E>
+
+    override fun listIterator(index: Int): MutableListIterator<E>
+
+    // View
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<E>
+}
+
+/**
+ * A generic unordered collection of elements that does not support duplicate elements.
+ * Methods in this interface support only read-only access to the set;
+ * read/write access is supported through the [MutableSet] interface.
+ * @param E the type of elements contained in the set. The set is covariant in its element type.
+ */
+public interface Set<out E> : Collection<E> {
+    // Query Operations
+
+    override val size: Int
+    override fun isEmpty(): Boolean
+    override fun contains(element: @UnsafeVariance E): Boolean
+    override fun iterator(): Iterator<E>
+
+    // Bulk Operations
+    override fun containsAll(elements: Collection<@UnsafeVariance E>): Boolean
+}
+
+/**
+ * A generic unordered collection of elements that does not support duplicate elements, and supports
+ * adding and removing elements.
+ * @param E the type of elements contained in the set. The mutable set is invariant in its element type.
+ */
+public interface MutableSet<E> : Set<E>, MutableCollection<E> {
+    // Query Operations
+    override fun iterator(): MutableIterator<E>
+
+    // Modification Operations
+
+    /**
+     * Adds the specified element to the set.
+     *
+     * @return `true` if the element has been added, `false` if the element is already contained in the set.
+     */
+    override fun add(element: E): Boolean
+
+    override fun remove(element: E): Boolean
+
+    // Bulk Modification Operations
+
+    override fun addAll(elements: Collection<E>): Boolean
+    override fun removeAll(elements: Collection<E>): Boolean
+    override fun retainAll(elements: Collection<E>): Boolean
+    override fun clear(): Unit
+}
+
+/**
+ * A collection that holds pairs of objects (keys and values) and supports efficiently retrieving
+ * the value corresponding to each key. Map keys are unique; the map holds only one value for each key.
+ * Methods in this interface support only read-only access to the map; read-write access is supported through
+ * the [MutableMap] interface.
+ * @param K the type of map keys. The map is invariant in its key type, as it
+ *          can accept key as a parameter (of [containsKey] for example) and return it in [keys] set.
+ * @param V the type of map values. The map is covariant in its value type.
+ */
+public interface Map<K, out V> {
+    // Query Operations
+    /**
+     * Returns the number of key/value pairs in the map.
+     */
+    public val size: Int
+
+    /**
+     * Returns `true` if the map is empty (contains no elements), `false` otherwise.
+     */
+    public fun isEmpty(): Boolean
+
+    /**
+     * Returns `true` if the map contains the specified [key].
+     */
+    public fun containsKey(key: K): Boolean
+
+    /**
+     * Returns `true` if the map maps one or more keys to the specified [value].
+     */
+    public fun containsValue(value: @UnsafeVariance V): Boolean
+
+    /**
+     * Returns the value corresponding to the given [key], or `null` if such a key is not present in the map.
+     */
+    public operator fun get(key: K): V?
+
+    /**
+     * Returns the value corresponding to the given [key], or [defaultValue] if such a key is not present in the map.
+     *
+     * @since JDK 1.8
+     */
+    @SinceKotlin("1.1")
+    @PlatformDependent
+    public fun getOrDefault(key: K, defaultValue: @UnsafeVariance V): V {
+        // See default implementation in JDK sources
+        throw NotImplementedError()
+    }
+
+    // Views
+    /**
+     * Returns a read-only [Set] of all keys in this map.
+     */
+    public val keys: Set<K>
+
+    /**
+     * Returns a read-only [Collection] of all values in this map. Note that this collection may contain duplicate values.
+     */
+    public val values: Collection<V>
+
+    /**
+     * Returns a read-only [Set] of all key/value pairs in this map.
+     */
+    public val entries: Set<Map.Entry<K, V>>
+
+    /**
+     * Represents a key/value pair held by a [Map].
+     */
+    public interface Entry<out K, out V> {
+        /**
+         * Returns the key of this key/value pair.
+         */
+        public val key: K
+
+        /**
+         * Returns the value of this key/value pair.
+         */
+        public val value: V
+    }
+}
+
+/**
+ * A modifiable collection that holds pairs of objects (keys and values) and supports efficiently retrieving
+ * the value corresponding to each key. Map keys are unique; the map holds only one value for each key.
+ * @param K the type of map keys. The map is invariant in its key type.
+ * @param V the type of map values. The mutable map is invariant in its value type.
+ */
+public interface MutableMap<K, V> : Map<K, V> {
+    // Modification Operations
+    /**
+     * Associates the specified [value] with the specified [key] in the map.
+     *
+     * @return the previous value associated with the key, or `null` if the key was not present in the map.
+     */
+    public fun put(key: K, value: V): V?
+
+    /**
+     * Removes the specified key and its corresponding value from this map.
+     *
+     * @return the previous value associated with the key, or `null` if the key was not present in the map.
+     */
+    public fun remove(key: K): V?
+
+    /**
+     * Removes the entry for the specified key only if it is mapped to the specified value.
+     *
+     * @return true if entry was removed
+     */
+    @SinceKotlin("1.1")
+    @PlatformDependent
+    public fun remove(key: K, value: V): Boolean {
+        // See default implementation in JDK sources
+        return true
+    }
+
+    // Bulk Modification Operations
+    /**
+     * Updates this map with key/value pairs from the specified map [from].
+     */
+    public fun putAll(from: Map<out K, V>): Unit
+
+    /**
+     * Removes all elements from this map.
+     */
+    public fun clear(): Unit
+
+    // Views
+    /**
+     * Returns a [MutableSet] of all keys in this map.
+     */
+    override val keys: MutableSet<K>
+
+    /**
+     * Returns a [MutableCollection] of all values in this map. Note that this collection may contain duplicate values.
+     */
+    override val values: MutableCollection<V>
+
+    /**
+     * Returns a [MutableSet] of all key/value pairs in this map.
+     */
+    override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
+
+    /**
+     * Represents a key/value pair held by a [MutableMap].
+     */
+    public interface MutableEntry<K, V> : Map.Entry<K, V> {
+        /**
+         * Changes the value associated with the key of this entry.
+         *
+         * @return the previous value corresponding to the key.
+         */
+        public fun setValue(newValue: V): V
+    }
+}
+---
+package com.enigma.georocks.ui.activities
+
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.enigma.georocks.databinding.ActivityLoginBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.enigma.georocks.ui.MainActivity
+
+class LoginActivity : AppCompatActivity() {
+
+    // ViewBinding and FirebaseAuth
+    private lateinit var binding: ActivityLoginBinding
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Initialize ViewBinding
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Initialize FirebaseAuth
+        auth = FirebaseAuth.getInstance()
+
+        // Set up click listeners
+        setupListeners()
+    }
+
+    /**
+     * Sets up click listeners for buttons and clickable elements
+     */
+    private fun setupListeners() {
+        // Login button
+        binding.btnLogin.setOnClickListener {
+            val email = binding.etEmail.text.toString().trim()
+            val password = binding.etPassword.text.toString()
+
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                login(email, password)
+            } else {
+                showToast("Please enter email and password")
+            }
+        }
+
+        // "Forgot Password?" text
+        binding.tvForgotPassword.setOnClickListener {
+            navigateToResetPassword()
+        }
+
+        // "Create an account" text
+        binding.tvRegister.setOnClickListener {
+            navigateToRegister()
+        }
+
+        // Google Sign-In button (placeholder)
+        binding.btnGoogleSignIn.setOnClickListener {
+            showToast("Google Sign-In is not implemented yet")
+        }
+    }
+
+    /**
+     * Logs in the user using Firebase Authentication
+     * @param email User's email address
+     * @param password User's password
+     */
+    private fun login(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Login successful
+                    navigateToMainActivity()
+                } else {
+                    // Login failed
+                    handleLoginError(task.exception)
+                }
+            }
+    }
+
+    /**
+     * Handles login errors
+     * @param exception FirebaseAuth exception
+     */
+    private fun handleLoginError(exception: Exception?) {
+        when (exception) {
+            is FirebaseAuthInvalidUserException -> showToast("User not registered")
+            is FirebaseAuthInvalidCredentialsException -> showToast("Invalid credentials")
+            is FirebaseAuthUserCollisionException -> showToast("This user is already registered")
+            else -> {
+                Log.e("LoginActivity", "Authentication error", exception)
+                showToast("Unknown error: ${exception?.message}")
+            }
+        }
+    }
+
+    /**
+     * Navigates to the main activity after a successful login
+     */
+    private fun navigateToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish() // Closes the login activity to prevent going back
+    }
+
+    /**
+     * Navigates to the reset password activity
+     */
+    private fun navigateToResetPassword() {
+        val intent = Intent(this, ResetPasswordActivity::class.java)
+        startActivity(intent)
+    }
+
+    /**
+     * Navigates to the register activity
+     */
+    private fun navigateToRegister() {
+        val intent = Intent(this, RegisterActivity::class.java)
+        startActivity(intent)
+    }
+
+    /**
+     * Displays a Toast message on the screen
+     * @param message Message to display
+     */
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+}
+
+---
+package com.enigma.georocks.ui.activities
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.MenuItem
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.enigma.georocks.R
+import com.enigma.georocks.databinding.ActivityRegisterBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.android.material.snackbar.Snackbar
+
+class RegisterActivity : AppCompatActivity() {
+
+    // Instance of View Binding
+    private lateinit var binding: ActivityRegisterBinding
+
+    // Instance of FirebaseAuth
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Inflate the layout using View Binding
+        binding = ActivityRegisterBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Configure the Toolbar
+        setSupportActionBar(binding.toolbarRegister)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back button
+
+        // Initialize FirebaseAuth
+        auth = FirebaseAuth.getInstance()
+
+        // Handle the click on the register button
+        binding.btnRegister.setOnClickListener {
+            val email = binding.etEmailRegister.text.toString().trim()
+            val password = binding.etPasswordRegister.text.toString()
+
+            // Basic validations
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                if (isValidEmail(email)) {
+                    if (isValidPassword(password)) {
+                        registerUser(email, password)
+                    } else {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.password_too_short),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.invalid_email),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } else {
+                Toast.makeText(
+                    this,
+                    getString(R.string.complete_all_fields),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    // Handle the click on the back button in the Toolbar
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> {
+                val intent = Intent(this, RegisterActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+
+    // Function to register the user in Firebase
+    private fun registerUser(email: String, password: String) {
+        // Show ProgressBar and disable the register button
+        binding.progressBarRegister.visibility = View.VISIBLE
+        binding.btnRegister.isEnabled = false
+
+        // Create user with email and password
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                // Hide ProgressBar and enable the register button
+                binding.progressBarRegister.visibility = View.GONE
+                binding.btnRegister.isEnabled = true
+
+                if (task.isSuccessful) {
+                    // Registration successful
+                    Snackbar.make(
+                        binding.registerCoordinatorLayout,
+                        getString(R.string.registration_success),
+                        Snackbar.LENGTH_LONG
+                    )
+                        .setBackgroundTint(ContextCompat.getColor(this, R.color.success_color))
+                        .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
+                        .show()
+                    finish()
+                } else {
+                    // Registration failed with specific error handling
+                    try {
+                        throw task.exception!!
+                    } catch (e: FirebaseAuthUserCollisionException) {
+                        // Email already registered
+                        Snackbar.make(
+                            binding.registerCoordinatorLayout,
+                            getString(R.string.email_already_registered),
+                            Snackbar.LENGTH_LONG
+                        )
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
+                            .show()
+                    } catch (e: FirebaseAuthWeakPasswordException) {
+                        // Weak password
+                        Snackbar.make(
+                            binding.registerCoordinatorLayout,
+                            getString(R.string.password_too_weak),
+                            Snackbar.LENGTH_LONG
+                        )
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
+                            .show()
+                    } catch (e: FirebaseAuthInvalidCredentialsException) {
+                        // Invalid email address
+                        Snackbar.make(
+                            binding.registerCoordinatorLayout,
+                            getString(R.string.invalid_email_address),
+                            Snackbar.LENGTH_LONG
+                        )
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
+                            .show()
+                    } catch (e: Exception) {
+                        // Other errors
+                        Snackbar.make(
+                            binding.registerCoordinatorLayout,
+                            getString(R.string.registration_failure) + ": ${e.message}",
+                            Snackbar.LENGTH_LONG
+                        )
+                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
+                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
+                            .show()
+                    }
+                }
+
+            }
+    }
+
+    // Function to validate the email format
+    private fun isValidEmail(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    // Function to validate the password length
+    private fun isValidPassword(password: String): Boolean {
+        return password.length >= 6
+    }
+}
+---
+package com.enigma.georocks.ui.activities
+
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.enigma.georocks.databinding.ActivityResetPasswordBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.snackbar.Snackbar
+import android.widget.Toast
+import android.view.MenuItem
+import androidx.core.app.NavUtils
+
+class ResetPasswordActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityResetPasswordBinding
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityResetPasswordBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Configure the Toolbar (if present in the layout)
+        setSupportActionBar(binding.toolbarResetPassword)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back button
+
+        auth = FirebaseAuth.getInstance()
+
+        binding.btnSendResetEmail.setOnClickListener {
+            val email = binding.etEmailReset.text.toString().trim()
+            if (email.isNotEmpty()) {
+                if (isValidEmail(email)) {
+                    sendResetEmail(email)
+                } else {
+                    Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Please enter your email address", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle the back button in the Toolbar
+        return when (item.itemId) {
+            android.R.id.home -> {
+                NavUtils.navigateUpFromSameTask(this)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun sendResetEmail(email: String) {
+        // Show ProgressBar
+        binding.progressBarReset.visibility = android.view.View.VISIBLE
+        binding.btnSendResetEmail.isEnabled = false
+
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                // Hide ProgressBar
+                binding.progressBarReset.visibility = android.view.View.GONE
+                binding.btnSendResetEmail.isEnabled = true
+
+                if (task.isSuccessful) {
+                    Snackbar.make(binding.resetPasswordCoordinatorLayout, "Reset email sent", Snackbar.LENGTH_LONG).show()
+                    finish()
+                } else {
+                    val errorMessage = task.exception?.message ?: "Error sending reset email"
+                    Snackbar.make(binding.resetPasswordCoordinatorLayout, errorMessage, Snackbar.LENGTH_LONG).show()
+                }
+            }
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+}
+---
+// ============================
+// RockDetailActivity.kt
+// ============================
+
+
+package com.enigma.georocks.ui.activities
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.MediaController
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
+import com.enigma.georocks.R
+import com.enigma.georocks.application.GeoRocksApp
+import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.data.db.FavoriteRepository
+import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.databinding.ActivityRockDetailBinding
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
+
+class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    private lateinit var binding: ActivityRockDetailBinding
+    private lateinit var repository: RockRepository
+    private lateinit var auth: FirebaseAuth
+
+    private val favoriteRepo: FavoriteRepository by lazy {
+        (application as GeoRocksApp).favoriteRepository
+    }
+
+    private var googleMap: GoogleMap? = null
+
+    private var currentRockId: String? = null
+    private var currentRockTitle: String? = null
+    private var currentRockThumbnail: String? = null
+
+    private var rockLatitude: Double? = null
+    private var rockLongitude: Double? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityRockDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        auth = FirebaseAuth.getInstance()
+        val toolbar: Toolbar = findViewById(R.id.toolbarRockDetail)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.rock_details)
+
+        repository = (application as GeoRocksApp).repository
+        val incomingRockId = intent.getStringExtra("ROCK_ID")
+
+        if (incomingRockId.isNullOrBlank()) {
+            Toast.makeText(this, R.string.no_rock_id_provided, Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+        currentRockId = incomingRockId
+
+        val mapFragment =
+            supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
+        mapFragment?.getMapAsync(this)
+
+        // The getRockDetail(...) call is placed inside a coroutine to avoid enqueue(...) on a suspend function.
+        lifecycleScope.launch {
+            try {
+                val rockDetail: RockDetailDto = repository.getRockDetail(incomingRockId)
+                updateUIWithDetails(incomingRockId, rockDetail)
+            } catch (e: Exception) {
+                Log.e("RockDetailActivity", "Failed to load details", e)
+                Toast.makeText(
+                    this@RockDetailActivity,
+                    R.string.failed_to_load_details,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_rock_detail, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> {
+                performLogout()
+                true
+            }
+            R.id.action_route -> {
+                openRouteInGoogleMaps()
+                true
+            }
+            R.id.action_favorite_rock -> {
+                toggleFavorite()
+                true
+            }
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun toggleFavorite() {
+        val rockId = currentRockId
+        if (rockId.isNullOrEmpty()) {
+            Toast.makeText(this, "No valid rock ID to toggle favorite.", Toast.LENGTH_SHORT).show()
+            Log.e(
+                "RockDetailActivity",
+                "toggleFavorite() called but currentRockId is null or empty."
+            )
+            return
+        }
+        lifecycleScope.launch {
+            val isAlreadyFavorited = favoriteRepo.isRockFavorited(rockId)
+            if (!isAlreadyFavorited) {
+                val rockDto = RockDto(
+                    id = rockId,
+                    thumbnail = currentRockThumbnail,
+                    title = currentRockTitle ?: ""
+                )
+                favoriteRepo.addToFavorites(rockDto)
+                Toast.makeText(this@RockDetailActivity, "Added to favorites.", Toast.LENGTH_SHORT)
+                    .show()
+            } else {
+                val rockDto = RockDto(
+                    id = rockId,
+                    thumbnail = currentRockThumbnail,
+                    title = currentRockTitle ?: ""
+                )
+                favoriteRepo.removeFromFavorites(rockDto)
+                Toast.makeText(
+                    this@RockDetailActivity,
+                    "Removed from favorites.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun performLogout() {
+        auth.signOut()
+        Toast.makeText(this, R.string.logged_out_successfully, Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
+    // This function is used after the coroutine call completes.
+    private fun updateUIWithDetails(rockId: String, rockDetail: RockDetailDto) {
+        currentRockTitle = rockDetail.title
+        currentRockThumbnail = rockDetail.image
+
+        binding.tvRockTitle.text = rockDetail.title ?: getString(R.string.unknown_title)
+        binding.tvRockDescription.text =
+            rockDetail.longDesc ?: getString(R.string.no_description_available)
+        binding.tvRockType.text = getString(
+            R.string.type_label,
+            rockDetail.aMemberOf ?: getString(R.string.unknown_type)
+        )
+        binding.tvRockColor.text = getString(
+            R.string.color_label,
+            rockDetail.color ?: getString(R.string.unknown_color)
+        )
+        binding.tvRockHardness.text = getString(
+            R.string.hardness_label,
+            rockDetail.hardness?.toString() ?: getString(R.string.unknown)
+        )
+        binding.tvRockFormula.text = getString(
+            R.string.formula_label,
+            rockDetail.formula ?: getString(R.string.unknown)
+        )
+        binding.tvRockMagnetic.text = getString(
+            R.string.magnetic_label,
+            rockDetail.magnetic?.toString() ?: getString(R.string.unknown)
+        )
+        binding.tvRockHealthRisks.text = getString(
+            R.string.health_risks_label,
+            rockDetail.healthRisks ?: getString(R.string.none)
+        )
+
+        val localitiesList = rockDetail.localities
+        if (!localitiesList.isNullOrEmpty()) {
+            binding.tvRockLocalities.text = getString(
+                R.string.localities_label,
+                localitiesList.joinToString()
+            )
+        } else {
+            binding.tvRockLocalities.text = getString(
+                R.string.localities_label,
+                getString(R.string.unknown)
+            )
+        }
+
+        rockDetail.image?.let {
+            Glide.with(this).load(it).into(binding.ivRockImage)
+        }
+
+        val imagesList = rockDetail.images
+        if (!imagesList.isNullOrEmpty()) {
+            val additionalImages = imagesList.joinToString("\n")
+            binding.tvRockAdditionalImages.text = getString(
+                R.string.additional_images_label,
+                additionalImages
+            )
+        } else {
+            binding.tvRockAdditionalImages.text = getString(R.string.no_additional_images)
+        }
+
+        rockDetail.video?.let { videoUrl ->
+            val videoUri = Uri.parse(videoUrl)
+            binding.vvRockVideo.setVideoURI(videoUri)
+            val mediaController = MediaController(this)
+            mediaController.setAnchorView(binding.vvRockVideo)
+            binding.vvRockVideo.setMediaController(mediaController)
+            binding.vvRockVideo.start()
+        }
+
+        rockLatitude = rockDetail.latitude
+        rockLongitude = rockDetail.longitude
+        googleMap?.let { updateMapMarker(it) }
+
+        val phys = rockDetail.physicalProperties
+        if (phys != null) {
+            val crystalSystem = phys.ppCrystalSystem ?: getString(R.string.unknown)
+            val luster = phys.ppLuster ?: getString(R.string.unknown)
+            val streak = phys.ppStreak ?: getString(R.string.unknown)
+            val tenacity = phys.ppTenacity ?: getString(R.string.unknown)
+            val cleavage = phys.ppCleavage ?: getString(R.string.unknown)
+            val fracture = phys.ppFracture ?: getString(R.string.unknown)
+            val density = phys.ppDensity ?: getString(R.string.unknown)
+
+            binding.tvRockPhysicalProperties.text = """
+                Crystal System: $crystalSystem
+                Luster: $luster
+                Streak: $streak
+                Tenacity: $tenacity
+                Cleavage: $cleavage
+                Fracture: $fracture
+                Density: $density
+            """.trimIndent()
+        } else {
+            binding.tvRockPhysicalProperties.text = getString(R.string.no_physical_properties)
+        }
+
+        val chem = rockDetail.chemicalProperties
+        if (chem != null) {
+            val classification = chem.cpChemicalClassification ?: getString(R.string.unknown)
+            val formula = chem.cpFormula ?: getString(R.string.unknown)
+            val impuritiesList = chem.cpCommonImpurities
+            val commonImpurities = if (!impuritiesList.isNullOrEmpty()) {
+                impuritiesList.joinToString()
+            } else {
+                getString(R.string.unknown)
+            }
+            binding.tvRockChemicalProperties.text = """
+                Classification: $classification
+                Formula: $formula
+                Common Impurities: $commonImpurities
+            """.trimIndent()
+        } else {
+            binding.tvRockChemicalProperties.text = getString(R.string.no_chemical_properties)
+        }
+
+        val faqsList = rockDetail.frequentlyAskedQuestions
+        if (!faqsList.isNullOrEmpty()) {
+            val faqsBulleted = faqsList.joinToString(separator = "\n• ", prefix = "• ")
+            binding.tvRockFaqs.text = faqsBulleted
+        } else {
+            binding.tvRockFaqs.text = getString(R.string.no_faqs)
+        }
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        updateMapMarker(map)
+    }
+
+    private fun updateMapMarker(map: GoogleMap) {
+        if (rockLatitude != null && rockLongitude != null) {
+            val location = LatLng(rockLatitude!!, rockLongitude!!)
+            map.addMarker(
+                MarkerOptions().position(location).title(
+                    currentRockTitle ?: getString(R.string.unknown_title)
+                )
+            )
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10f))
+        }
+    }
+
+    private fun openRouteInGoogleMaps() {
+        if (rockLatitude == null || rockLongitude == null) {
+            Toast.makeText(this, R.string.coordinates_missing, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val gmmIntentUri = Uri.parse("google.navigation:q=$rockLatitude,$rockLongitude")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
+            setPackage("com.google.android.apps.maps")
+        }
+        if (mapIntent.resolveActivity(packageManager) != null) {
+            startActivity(mapIntent)
+        } else {
+            Toast.makeText(this, R.string.google_maps_not_installed, Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+---
+// File path: app/src/main/java/com/enigma/georocks/ui/adapters/RocksAdapter.kt
+
+package com.enigma.georocks.ui.adapters
+
+import android.content.Intent
+import android.media.MediaPlayer
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.enigma.georocks.R
+import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.databinding.RockElementBinding
+import com.enigma.georocks.ui.activities.RockDetailActivity
+
+class RocksAdapter(
+    private var rocks: List<RockDto>,
+    private val loadRockDetails: (String, RocksViewHolder) -> Unit // Callback to load details
+) : RecyclerView.Adapter<RocksViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RocksViewHolder {
+        val binding = RockElementBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return RocksViewHolder(binding)
+    }
+
+    override fun getItemCount(): Int = rocks.size
+
+    override fun onBindViewHolder(holder: RocksViewHolder, position: Int) {
+        val rock = rocks[position]
+
+        // Initial rock data is bound
+        holder.bind(rock)
+
+        // Additional details are loaded using the rock ID
+        rock.id?.let { loadRockDetails(it, holder) }
+
+        // Click listener is set for the entire item
+        holder.itemView.setOnClickListener {
+            // Click sound is played
+            val mediaPlayer = MediaPlayer.create(holder.itemView.context, R.raw.click_sound)
+            mediaPlayer.start()
+            mediaPlayer.setOnCompletionListener { mp ->
+                mp.release()
+            }
+
+            // Navigation to RockDetailActivity is initiated
+            val context = holder.itemView.context
+            val intent = Intent(context, RockDetailActivity::class.java).apply {
+                putExtra("ROCK_ID", rock.id)
+            }
+            context.startActivity(intent)
+        }
+    }
+
+    // Data in the adapter is updated
+    fun updateData(newRocks: List<RockDto>) {
+        this.rocks = newRocks
+        notifyDataSetChanged()
+    }
+}
+---
+// ============================
+// RocksViewHolder.kt
+// ============================
+
+
+package com.enigma.georocks.ui.adapters
+
+import android.util.Log
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.enigma.georocks.R
+import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.databinding.RockElementBinding
+
+class RocksViewHolder(
+    private val binding: RockElementBinding
+) : RecyclerView.ViewHolder(binding.root) {
+
+    private val context = binding.root.context
+
+    fun bind(rock: RockDto) {
+        // Safely handle the nullable 'title' by using '?:' to provide a default empty string,
+        // then call 'ifBlank' to show a placeholder if it's empty.
+        val safeTitle = (rock.title ?: "").ifBlank {
+            context.getString(R.string.unknown_title)
+        }
+        binding.tvTitle.text = safeTitle
+
+        // "Loading" placeholders for type and color
+        binding.tvType.text = context.getString(R.string.loading_type)
+        binding.tvColor.text = context.getString(R.string.loading_color)
+
+        // Safely load the thumbnail. Glide can handle a null path, but an empty string is passed here for clarity.
+        val safeThumbnail = rock.thumbnail ?: ""
+        Glide.with(context)
+            .load(safeThumbnail)
+            .into(binding.ivThumbnail)
+
+        Log.d("RocksViewHolder", "Rock Title: $safeTitle")
+    }
+
+    fun updateDetails(type: String?, color: String?) {
+        // Provide fallbacks in case 'type' or 'color' are null
+        val safeType = type ?: context.getString(R.string.unknown_type)
+        binding.tvType.text = context.getString(R.string.member_of_format, safeType)
+
+        val safeColor = color ?: context.getString(R.string.unknown_color)
+        binding.tvColor.text = context.getString(R.string.color_format, safeColor)
+
+        Log.d("RocksViewHolder", "Updated Details - Type: $type, Color: $color")
+    }
+}
+---
+package com.enigma.georocks.ui.fragments
+
+import android.net.Uri
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.MediaController
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.enigma.georocks.R
+import com.enigma.georocks.application.GeoRocksApp
+import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.data.db.FavoriteRepository
+import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.databinding.FragmentRockDetailBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class RockDetailFragment : Fragment() {
+
+    private var _binding: FragmentRockDetailBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var repository: RockRepository
+    private lateinit var favoriteRepo: FavoriteRepository
+
+    private var rockId: String? = null
+    private var isFavorite: Boolean = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            rockId = it.getString(ARG_ROCK_ID)
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRockDetailBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        repository = (requireActivity().application as GeoRocksApp).repository
+        favoriteRepo = (requireActivity().application as GeoRocksApp).favoriteRepository
+
+        rockId?.let { id ->
+            lifecycleScope.launch {
+                try {
+                    val rockDetail: RockDetailDto = repository.getRockDetail(id)
+                    withContext(Dispatchers.Main) {
+                        binding.tvTitle.text = rockDetail.title
+                        binding.tvLongDesc.text = rockDetail.longDesc
+                        binding.tvType.text = "Type: ${rockDetail.aMemberOf}"
+                        binding.tvColor.text = "Color: ${rockDetail.color}"
+
+                        if (!rockDetail.video.isNullOrEmpty()) {
+                            val videoUri = Uri.parse(rockDetail.video)
+                            binding.vvRockVideo.setVideoURI(videoUri)
+                            val mediaController = MediaController(requireContext())
+                            mediaController.setAnchorView(binding.vvRockVideo)
+                            binding.vvRockVideo.setMediaController(mediaController)
+                            binding.vvRockVideo.start()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "No video available for this rock",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            binding.vvRockVideo.visibility = View.GONE
+                        }
+
+                        isFavorite = favoriteRepo.isRockFavorited(id)
+                        updateHeartIcon(isFavorite)
+                        Log.d("RockDetailFragment", "Rock details: $rockDetail")
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Error retrieving rock details",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    Log.e("RockDetailFragment", "Error fetching rock details", e)
+                }
+            }
+        }
+
+        binding.ivFavorite.setOnClickListener {
+            rockId?.let { id ->
+                lifecycleScope.launch {
+                    try {
+                        if (!isFavorite) {
+                            val rockDetail = repository.getRockDetail(id)
+                            val rockDto = RockDto(
+                                id = id,
+                                title = rockDetail.title ?: "Unknown",
+                                thumbnail = rockDetail.image ?: ""
+                            )
+                            repository.addToFavorites(rockDto)
+                            isFavorite = true
+                            updateHeartIcon(isFavorite)
+                            Toast.makeText(
+                                requireContext(),
+                                "Added to favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            Log.d("RockDetailFragment", "Rock ID $id added to favorites.")
+                        } else {
+                            val rockDto = RockDto(
+                                id = id,
+                                title = null,
+                                thumbnail = null
+                            )
+                            repository.removeFromFavorites(rockDto)
+                            isFavorite = false
+                            updateHeartIcon(isFavorite)
+                            Toast.makeText(
+                                requireContext(),
+                                "Removed from favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            Log.d("RockDetailFragment", "Rock ID $id removed from favorites.")
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(requireContext(), "Operation failed", Toast.LENGTH_SHORT)
+                            .show()
+                        Log.e("RockDetailFragment", "Favorite operation failed", e)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateHeartIcon(favorite: Boolean) {
+        if (favorite) {
+            binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled)
+        } else {
+            binding.ivFavorite.setImageResource(R.drawable.ic_favorite_border)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    companion object {
+        private const val ARG_ROCK_ID = "rock_id"
+
+        @JvmStatic
+        fun newInstance(rockId: String) = RockDetailFragment().apply {
+            arguments = Bundle().apply {
+                putString(ARG_ROCK_ID, rockId)
+            }
+        }
+    }
+}
+---
+// ============================
+// RocksListFragment.kt (Corrected)
+// ============================
+// The "Unresolved reference: a_member_of" error was addressed
+// by using the correct Kotlin property name "aMemberOf".
+
+package com.enigma.georocks.ui.fragments
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.*
+import android.widget.Toast
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.enigma.georocks.R
+import com.enigma.georocks.application.GeoRocksApp
+import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.data.db.FavoriteRockEntity
+import com.enigma.georocks.data.remote.model.RockDetailDto
+import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.databinding.FragmentRocksListBinding
+import com.enigma.georocks.ui.activities.LoginActivity
+import com.enigma.georocks.ui.adapters.RocksAdapter
+import com.enigma.georocks.ui.adapters.RocksViewHolder
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+class RocksListFragment : Fragment() {
+
+    private var _binding: FragmentRocksListBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var auth: FirebaseAuth
+    private lateinit var repository: RockRepository
+
+    private var fullRocksList: MutableList<RockDto> = mutableListOf()
+    private lateinit var rocksAdapter: RocksAdapter
+    private var showingFavorites: Boolean = false
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRocksListBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    /**
+     * It is invoked immediately after the view is inflated; FirebaseAuth and the repository are initialized,
+     * and the list of rocks is loaded.
+     */
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        repository = (requireActivity().application as GeoRocksApp).repository
+        auth = FirebaseAuth.getInstance()
+
+        setupToolbar()
+        setupMenu()
+        loadRocks()
+    }
+
+    /**
+     * The FavoriteRepository instance is obtained from the Application.
+     */
+    private fun getFavoriteRepository() =
+        (requireActivity().application as GeoRocksApp).favoriteRepository
+
+    /**
+     * The Toolbar is configured along with its basic logout listener.
+     */
+    private fun setupToolbar() {
+        binding.toolbarRocksList.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_logout -> {
+                    performLogout()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    /**
+     * The menu is dynamically added to the host Activity, including search and view favorites.
+     */
+    private fun setupMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_rocks_list, menu)
+
+                // The SearchView is configured
+                val searchItem = menu.findItem(R.id.action_search)
+                val searchView = searchItem?.actionView as? android.widget.SearchView
+                searchView?.queryHint = getString(R.string.menu_search_hint)
+                searchView?.setOnQueryTextListener(object : android.widget.SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean = false
+                    override fun onQueryTextChange(newText: String?): Boolean {
+                        filterRocks(newText ?: "")
+                        return true
+                    }
+                })
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_view_favorites -> {
+                        if (!showingFavorites) {
+                            showFavorites()
+                        } else {
+                            showAllRocks()
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    /**
+     * The list of rocks is loaded using coroutines to call the suspend method getRocksApiary().
+     */
+    private fun loadRocks() {
+        binding.pbLoading.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            try {
+                // This method is suspend; RockRepository.getRocksApiary()
+                // returns the list of rocks from the backend service.
+                val rocks = repository.getRocksApiary()
+                fullRocksList = rocks
+                setupRecyclerView(rocks)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "No connection available", Toast.LENGTH_SHORT).show()
+            } finally {
+                binding.pbLoading.visibility = View.GONE
+            }
+        }
+    }
+
+    /**
+     * The RecyclerView is initialized with a RocksAdapter, and the details of each item are loaded.
+     */
+    private fun setupRecyclerView(rocks: List<RockDto>) {
+        rocksAdapter = RocksAdapter(rocks) { rockId, viewHolder ->
+            // Details are loaded using a coroutine
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    val detail: RockDetailDto = repository.getRockDetail(rockId)
+                    // The property is 'aMemberOf' (Kotlin variable),
+                    // which is mapped from "a_member_of" by @SerializedName in RockDetailDto.
+                    viewHolder.updateDetails(detail.aMemberOf, detail.color)
+                } catch (e: Exception) {
+                    // Error is handled silently or logged if desired
+                }
+            }
+        }
+        binding.rvRocks.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = rocksAdapter
+        }
+    }
+
+    /**
+     * The list of rocks is filtered according to the search query and whether favorites are being shown.
+     */
+    private fun filterRocks(query: String) {
+        if (showingFavorites) {
+            // If favorites are being shown, they are filtered from the database
+            CoroutineScope(Dispatchers.Main).launch {
+                val favorites = getFavoriteRepository().getAllFavorites()
+                val favAsRockDto = favorites.map { it.toRockDto() }
+                val filtered = favAsRockDto.filter {
+                    it.title?.contains(query, ignoreCase = true) == true
+                }
+                rocksAdapter.updateData(filtered)
+            }
+        } else {
+            // Otherwise, the full list loaded in memory is filtered
+            val filteredList = fullRocksList.filter { rock ->
+                rock.title?.contains(query, ignoreCase = true) == true
+            }
+            rocksAdapter.updateData(filteredList)
+        }
+    }
+
+    /**
+     * The list of favorites retrieved from Room is displayed.
+     */
+    private fun showFavorites() {
+        showingFavorites = true
+        Toast.makeText(requireContext(), "Now showing Favorites", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch(Dispatchers.Main) {
+            val favoriteRepo = getFavoriteRepository()
+            val favoriteEntities: List<FavoriteRockEntity> = favoriteRepo.getAllFavorites()
+            val favoriteRocks = favoriteEntities.map { it.toRockDto() }
+            rocksAdapter.updateData(favoriteRocks)
+        }
+    }
+
+    /**
+     * The original full list is restored.
+     */
+    private fun showAllRocks() {
+        showingFavorites = false
+        Toast.makeText(requireContext(), "Now showing All Rocks", Toast.LENGTH_SHORT).show()
+        rocksAdapter.updateData(fullRocksList)
+    }
+
+    /**
+     * A FavoriteRockEntity is converted to RockDto for display in the RecyclerView.
+     */
+    private fun FavoriteRockEntity.toRockDto(): RockDto {
+        return RockDto(
+            id = this.rockId,
+            thumbnail = this.thumbnail,
+            title = this.title
+        )
+    }
+
+    /**
+     * The session is logged out, and the Login screen is returned to.
+     */
+    private fun performLogout() {
+        auth.signOut()
+        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+        val intent = Intent(requireContext(), LoginActivity::class.java)
+        startActivity(intent)
+        requireActivity().finish()
+    }
+
+    /**
+     * The binding is cleared when the view is destroyed.
+     */
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+---
+// ============================
+// MainActivity.kt
+// ============================
+
+package com.enigma.georocks.ui
+
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.enigma.georocks.R
+import com.enigma.georocks.application.GeoRocksApp
+import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.databinding.ActivityMainBinding
+import com.enigma.georocks.ui.activities.LoginActivity
+import com.enigma.georocks.ui.fragments.RocksListFragment
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var repository: RockRepository
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // The RockRepository is retrieved from GeoRocksApp.
+        repository = (application as GeoRocksApp).repository
+
+        if (savedInstanceState == null) {
+            // The RocksListFragment is shown when activity is first created.
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, RocksListFragment())
+                .commit()
+        }
+
+        // The rock details are verified for demonstration.
+        checkRockDetails()
+    }
+
+    /**
+     * The details of several rocks are fetched, each one by its ID.
+     * The suspend function is invoked from within a coroutine using lifecycleScope.
+     */
+    private fun checkRockDetails() {
+        val rockIds = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+
+        lifecycleScope.launch {
+            // Each rock's details are fetched in a try/catch block to handle possible errors.
+            for (rockId in rockIds) {
+                try {
+                    val rockDetail = repository.getRockDetail(rockId)
+                    Log.d(
+                        "API",
+                        "Rock ID: $rockId, a_member_of: ${rockDetail.aMemberOf}, color: ${rockDetail.color}"
+                    )
+                } catch (e: Exception) {
+                    Log.e(
+                        "API",
+                        "Error retrieving details for Rock ID: $rockId, message: ${e.message}",
+                        e
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    /**
+     * A menu option is provided to log out the user.
+     */
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> {
+                // The user is signed out of FirebaseAuth and taken back to the Login screen.
+                FirebaseAuth.getInstance().signOut()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+}
+---// File path: app/src/main/java/com/enigma/georocks/ui/SplashActivity.kt
+
+package com.enigma.georocks.ui
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.enigma.georocks.databinding.ActivitySplashBinding
+import com.enigma.georocks.ui.activities.LoginActivity
+import com.google.firebase.auth.FirebaseAuth
+
+class SplashActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivitySplashBinding
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        auth = FirebaseAuth.getInstance()
+
+        binding.root.postDelayed({
+            val currentUser = auth.currentUser
+            if (currentUser != null) {
+                // Authenticated user
+                startActivity(Intent(this, MainActivity::class.java))
+            } else {
+                // Unauthenticated user
+                startActivity(Intent(this, LoginActivity::class.java))
+            }
+            finish()
+        }, 2000)
+    }
+}
+---
+// File path: app/src/main/java/com/enigma/georocks/utils/Constants.kt
+
+package com.enigma.georocks.utils
+
+object Constants {
+    const val BASE_URL = "https://private-516480-rock9tastic.apiary-mock.com/"
+    const val LOGTAG = "APPLOGS"
+}
+---
+res/color/primary.xml
+---
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:color="#8B4513" /> <!-- Marrón para el estado presionado (tierra) -->
+    <item android:state_focused="true" android:color="#D2B48C" /> <!-- Marrón claro para el estado enfocado (arena) -->
+    <item android:color="#EAEAE8" /> <!-- Para hacer match con el logo-->
+</selector>
+---
+res/drawable/background_rock.xml
+---
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#4A3C31" /> <!-- A natural brown color -->
+    <corners android:radius="6dp" /> <!-- Slightly more rounded corners -->
+</shape>
+---
+# Rocks
+
+## Rock List [/rocks/rock_list]
+
+### List All Rocks [GET]
+
++ Response 200 (application/json)
+
+        [
+            {
+                "id": "1",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Quartz_monzonite_36mw1037.jpg/1024px-Quartz_monzonite_36mw1037.jpg",
+                "title": "Granito Adamellite"
+            },{
+                "id": "2",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/7/71/Bianco_Sardo_Granit_mit_polierter_Oberfl%C3%A4che.jpg",
+                "title": "Potassic Granite"
+            },{
+                "id": "3",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Granodiorite_fine-grained.jpg/435px-Granodiorite_fine-grained.jpg",
+                "title": "Granodiorite"
+            },{
+                "id": "4",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Alkaline_pegmatite.jpg",
+                "title": "Pegmatite"
+            },{
+                "id": "5",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Aplite_%C5%A1vihov.jpg/1280px-Aplite_%C5%A1vihov.jpg",
+                "title": "Aplite"
+            },{
+                "id": "6",
+                "thumbnail": "https://lh3.googleusercontent.com/-Zpbdo1XSQeY/T_MdXK3QqSI/AAAAAAAABck/syFpYDiHZPw/s720/4425%252520greisen.jpg",
+                "title": "Greisen"
+            },{
+                "id": "7",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/c/ca/SKRIFTGRANITT_02_Einerkilen-Evje.jpg",
+                "title": "Graphic Granite"
+            },{
+                "id": "8",
+                "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Luxullianite.jpg",
+                "title": "Luxullianite"
+            },{
+                "id": "9",
+                "thumbnail": "https://www.minerals.net/thumbnail.aspx?image=MineralImages/schorl-albite-skardu-pakistan.jpg&size=500",
+                "title": "Schorl Rock"
+            },{
+                "id": "10",
+                "thumbnail": "https://www.researchgate.net/profile/Tapio-Ruotoistenmaeki/publication/274264107/figure/fig44/AS:667876176457731@1536245497154/Outcrop-5671-X-358-072-Y-222-671-Weathered-altered-granite-Density-is-low-2551.png",
+                "title": "Pneumatolyzed Granite"
+            }
+        ]
+
+## Rock 1 [/rocks/rock_detail/1]
+
+### Get rock detail 1 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Granito Adamellite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Quartz_monzonite_36mw1037.jpg/1024px-Quartz_monzonite_36mw1037.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "long_desc": "A type of intrusive igneous rock with a composition between granite and diorite. It is characterized by its granular texture and the presence of both quartz and feldspar.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Adamellite"],
+            "formula": "SiO2, Al2O3, K2O, Na2O",
+            "hardness": 6,
+            "color": "Gray, Pink",
+            "magnetic": false,
+            "latitude": -25.2744,
+            "longitude": 133.7751,
+            "health_risks": "None",
+            "images": [
+                "https://cdn.store-factory.com/www.abijoux.com/content/product_10681723hd.jpg?v=1548944049",
+                "https://h7.alamy.com/comp/FEP41Y/adamellite-quartz-monzonite-an-intrusive-felsic-igneous-rock-FEP41Y.jpg"
+            ],
+            "localities": ["Australia", "Europe"],
+            "frequently_asked_questions": [
+                "Is Adamellite a type of granite?",
+                "What are the uses of Adamellite?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Gray", "Pink"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Irregular",
+                "pp_density": "2.65 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, K2O, Na2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Potassium", "Sodium"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+
+## Rock 2 [/rocks/rock_detail/2]
+
+### Get rock detail 2 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Potassic Granite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/7/71/Bianco_Sardo_Granit_mit_polierter_Oberfl%C3%A4che.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            "long_desc": "A type of granite rich in potassium feldspar, giving it a distinctive pink or red hue. It is commonly used as a building material and decorative stone.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["K-feldspar Granite"],
+            "formula": "SiO2, Al2O3, K2O",
+            "hardness": 6,
+            "color": "Red, Pink",
+            "magnetic": false,
+            "latitude": -14.2350,
+            "longitude": -51.9253,
+
+            "health_risks": "None",
+            "images": [
+                "https://geologyistheway.com/wp-content/uploads/2021/05/l_haga_me7-768x549.jpg",
+                "https://geologyistheway.com/wp-content/uploads/2021/05/Dakota_Mahogany_Granite__porphyritic_granite_Milbank_Granite_2.6-2.7_Ga_Neoarchean_east_of_Milbank_South_Dakota_USA_14618866119-768x751.jpg"
+            ],
+            "localities": ["Brazil", "Canada"],
+            "frequently_asked_questions": [
+                "Is Potassic Granite durable?",
+                "What are the common uses of Potassic Granite?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Red", "Pink"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Conchoidal",
+                "pp_density": "2.70 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, K2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Potassium"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+## Rock 3 [/rocks/rock_detail/3]
+
+### Get rock detail 3 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Granodiorite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Granodiorite_pmg_ss_2006.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "long_desc": "A coarse-grained igneous rock similar to granite but containing more plagioclase than potassium feldspar. It is often used as a construction material.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Tonalite"],
+            "formula": "SiO2, Al2O3, CaO, Na2O",
+            "hardness": 6,
+            "color": "Gray, White",
+            "magnetic": false,
+            "latitude": -9.1899,
+            "longitude": -75.0152,
+            "health_risks": "None",
+            "images": [
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Granodiorite_fine-grained.jpg/1200px-Granodiorite_fine-grained.jpg",
+                "https://www.virtualmicroscope.org/sites/default/files/hero-s339-19.jpg"
+            ],
+            "localities": ["Peru", "Sweden"],
+            "frequently_asked_questions": [
+                "What is the difference between Granite and Granodiorite?",
+                "What are the common uses of Granodiorite?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Gray", "White"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Irregular",
+                "pp_density": "2.75 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, CaO, Na2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Calcium", "Sodium"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+## Rock 4 [/rocks/rock_detail/4]
+
+### Get rock detail 4 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Pegmatite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Alkaline_pegmatite.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+            "long_desc": "An igneous rock composed mainly of large crystals. It often contains rare minerals and gemstones, making it a valuable resource for collectors.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Coarse-grained Granite"],
+            "formula": "SiO2, Al2O3, K2O, Na2O",
+            "hardness": 7,
+            "color": "White, Pink",
+            "magnetic": false,
+            "latitude": -18.7669,
+            "longitude": 46.8691,
+            "health_risks": "None",
+            "images": [
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/We-pegmatite.jpg/330px-We-pegmatite.jpg",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Harding_Mine_apatite.jpg/330px-Harding_Mine_apatite.jpg"
+            ],
+            "localities": ["Madagascar", "United States"],
+            "frequently_asked_questions": [
+                "What makes Pegmatite unique?",
+                "Where is Pegmatite commonly found?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["White", "Pink"],
+                "pp_luster": "Vitreous",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 7,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Conchoidal",
+                "pp_density": "2.60 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, K2O, Na2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Potassium", "Sodium"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+## Rock 5 [/rocks/rock_detail/5]
+
+### Get rock detail 5 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Aplite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Aplite_%C5%A1vihov.jpg/1280px-Aplite_%C5%A1vihov.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            "long_desc": "A fine-grained igneous rock with a sugary texture, often found in small dykes associated with granite formations. It is composed primarily of quartz and feldspar.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Sugar Granite"],
+            "formula": "SiO2, Al2O3, Na2O",
+            "hardness": 6,
+            "color": "Light Gray",
+            "magnetic": false,
+            "latitude": 60.4720,
+            "longitude": 8.4689,
+            "health_risks": "None",
+            "images": [
+                "https://upload.wikimedia.org/wikipedia/commons/6/66/Aplite_%C5%A1vihov.jpg",
+                "https://www.sandatlas.org/wp-content/uploads/00316-4384-12-cm-granite-aplite.jpg"
+            ],
+            "localities": ["Norway", "Germany"],
+            "frequently_asked_questions": [
+                "What are the common uses of Aplite?",
+                "Where is Aplite commonly found?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Light Gray"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Irregular",
+                "pp_density": "2.60 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, Na2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Sodium"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+## Rock 6 [/rocks/rock_detail/6]
+
+### Get rock detail 6 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Greisen",
+            "image": "https://lh3.googleusercontent.com/-Zpbdo1XSQeY/T_MdXK3QqSI/AAAAAAAABck/syFpYDiHZPw/s720/4425%252520greisen.jpg",
+            "video": "https://www.w3schools.com/html/movie.mp4",
+            "long_desc": "A light-colored, coarse-grained metamorphic rock composed primarily of quartz and mica. It forms from the alteration of granite and is often associated with tin and tungsten ore deposits.",
+            "a_member_of": "Metamorphic",
+            "also_known_as": ["Tin Granite"],
+            "formula": "SiO2, Al2O3, K2O",
+            "hardness": 6,
+            "color": "Gray, Green",
+            "magnetic": false,
+            "latitude": 50.5039,
+            "longitude": -4.6521,
+            "health_risks": "None",
+            "images": [
+                "https://www.geologysuperstore.com/wp-content/uploads/2022/10/greisen_1.jpg",
+                "https://www.geologysuperstore.com/wp-content/uploads/2023/03/Greisen-1-300x300-1.png"
+            ],
+            "localities": ["Cornwall, England", "Saxony, Germany"],
+            "frequently_asked_questions": [
+                "What is Greisen commonly used for?",
+                "Is Greisen associated with any metals?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Gray", "Green"],
+                "pp_luster": "Pearly",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Uneven",
+                "pp_density": "2.75 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, K2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Potassium"],
+                "cp_common_impurities": ["Fluorine", "Lithium"]
+            }
+        }
+
+## Rock 7 [/rocks/rock_detail/7]
+
+### Get rock detail 7 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Graphic Granite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/d/d7/SKRIFTGRANITT_03_Einerkilen-Evje.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            "long_desc": "A type of granite characterized by its unique texture, where quartz and feldspar are intergrown in a pattern that resembles ancient writing. It is often used as a decorative stone.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Graphic Pegmatite"],
+            "formula": "SiO2, Al2O3, K2O, Na2O",
+            "hardness": 6,
+            "color": "Gray, White",
+            "magnetic": false,
+            "latitude": 59.9139,
+            "longitude": 10.7522,
+            "health_risks": "None",
+            "images": [
+                "https://geologybase.com/wp-content/uploads/2022/09/Graphic-granite-texture-runic-granite-runite.jpg"
+            ],
+            "localities": ["Norway", "Russia"],
+            "frequently_asked_questions": [
+                "What is the significance of the texture in Graphic Granite?",
+                "Is Graphic Granite a common decorative stone?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Gray", "White"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Conchoidal",
+                "pp_density": "2.70 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, K2O, Na2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Potassium", "Sodium"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+
+## Rock 8 [/rocks/rock_detail/8]
+
+### Get rock detail 8 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Luxullianite",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Luxullianite.jpg",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+            "long_desc": "A rare variety of granite containing abundant tourmaline, giving it a distinctive speckled appearance. It is named after the village of Luxulyan in Cornwall, England.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Tourmaline Granite"],
+            "formula": "SiO2, Al2O3, B2O3",
+            "hardness": 6,
+            "color": "Pink, Black",
+            "magnetic": false,
+            "latitude": 50.3922,
+            "longitude": -4.7482,
+            "health_risks": "None",
+            "images": [
+                "https://www.virtualmicroscope.org/sites/default/files/11AGT03-Img11891_hero_pd.jpg",
+                "https://www.virtualmicroscope.org/sites/default/files/11AGT02a-Img9095_hero_pd.jpg"
+            ],
+            "localities": ["Cornwall, England"],
+            "frequently_asked_questions": [
+                "Why is Luxullianite rare?",
+                "Where can Luxullianite be found?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Pink", "Black"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Irregular",
+                "pp_density": "2.75 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, B2O3",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Boron"],
+                "cp_common_impurities": ["Iron", "Magnesium"]
+            }
+        }
+
+## Rock 9 [/rocks/rock_detail/9]
+
+### Get rock detail 9 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Schorl Rock",
+            "image": "https://www.minerals.net/thumbnail.aspx?image=MineralImages/schorl-albite-skardu-pakistan.jpg&size=500",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
+            "long_desc": "A metamorphic rock primarily composed of black tourmaline (schorl) and quartz. It is named after the German village of Schorl, where it was first discovered.",
+            "a_member_of": "Metamorphic",
+            "also_known_as": ["Tourmaline Schist"],
+            "formula": "NaFe3Al6(BO3)3Si6O18(OH)4",
+            "hardness": 7,
+            "color": "Black",
+            "magnetic": false,
+            "latitude": -14.2350,
+            "longitude": -51.9253,
+            "health_risks": "None",
+            "images": [
+                "https://celestialearthminerals.com/wp-content/uploads/2013/05/MIXN9-286.jpg",
+                "https://assets3.fossilera.com/sp/494104/schorl-black-tourmaline/tourmaline-var-schorl-mica.jpg"
+            ],
+            "localities": ["Germany", "Brazil"],
+            "frequently_asked_questions": [
+                "What is Schorl Rock used for?",
+                "Is Schorl Rock common in jewelry?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["Black"],
+                "pp_luster": "Vitreous",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 7,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Conchoidal",
+                "pp_density": "3.20 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Borate Silicate",
+                "cp_formula": "NaFe3Al6(BO3)3Si6O18(OH)4",
+                "cp_elements_listed": ["Sodium", "Iron", "Aluminum", "Boron"],
+                "cp_common_impurities": ["Magnesium", "Titanium"]
+            }
+        }
+
+## Rock 10 [/rocks/rock_detail/10]
+
+### Get rock detail 10 [GET]
+
++ Response 200 (application/json)
+
+        {
+            "title": "Pneumatolyzed Granite",
+            "image": "https://www.researchgate.net/profile/Tapio-Ruotoistenmaeki/publication/274264107/figure/fig44/AS:667876176457731@1536245497154/Outcrop-5671-X-358-072-Y-222-671-Weathered-altered-granite-Density-is-low-2551.png",
+            "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            "long_desc": "A type of altered granite that has been affected by gaseous emanations during its formation, resulting in unique mineral compositions and textures.",
+            "a_member_of": "Igneous",
+            "also_known_as": ["Altered Granite"],
+            "formula": "SiO2, Al2O3, K2O",
+            "hardness": 6,
+            "color": "White, Gray",
+            "magnetic": false,
+            "latitude": 60.4720,
+            "longitude": 8.4689,
+            "health_risks": "None",
+            "images": [
+                "https://www.virtualmicroscope.org/sites/default/files/hero-11agt25.jpg",
+                "http://www.jsjgeology.net/Yerington-Batholith-altered-granite_files/image002.gif"
+            ],
+            "localities": ["Norway", "Finland"],
+            "frequently_asked_questions": [
+                "What causes the alteration in Pneumatolyzed Granite?",
+                "Is Pneumatolyzed Granite used in construction?"
+            ],
+            "physical_properties": {
+                "pp_crystal_system": "Granular",
+                "pp_colors": ["White", "Gray"],
+                "pp_luster": "Dull",
+                "pp_diaphaneity": "Opaque",
+                "pp_magnetic": false,
+                "pp_streak": "White",
+                "pp_hardness": 6,
+                "pp_tenacity": "Brittle",
+                "pp_cleavage": "None",
+                "pp_fracture": "Irregular",
+                "pp_density": "2.65 g/cm³"
+            },
+            "chemical_properties": {
+                "cp_chemical_classification": "Silicate",
+                "cp_formula": "SiO2, Al2O3, K2O",
+                "cp_elements_listed": ["Silicon", "Aluminum", "Potassium"],
+                "cp_common_impurities": ["Iron", "Fluorine"]
+            }
+        }
+
+
+
+---
+https://private-516480-rock9tastic.apiary-mock.com/rocks/rock_list
+
+https://private-516480-rock9tastic.apiary-mock.com/rocks/rock_detail/1
+
+
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
+---
