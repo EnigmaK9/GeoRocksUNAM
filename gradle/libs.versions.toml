@@ -1,9 +1,11 @@
 [versions]
 agp = "8.7.3"
 compiler = "4.15.1"
-espresso-core-version = "3.5.1"
-firebase-bom-version = "32.2.3"
+espresso-core-version = "3.6.1"
+firebase-bom-version = "33.7.0"
+fragment-ktx = "1.8.5"
 glide-version = "4.15.1"
+hilt-android = "2.51.1"
 kotlin = "1.9.24"
 core-ktx = "1.15.0"
 appcompat = "1.7.0"
@@ -14,7 +16,7 @@ lifecycle-runtime-ktx = "2.8.7"
 retrofit = "2.11.0"
 converter-gson = "2.11.0"
 logging-interceptor = "4.10.0"
-glide = "4.13.2"
+glide = "4.15.1"
 picasso = "2.71828"
 room-compiler-version = "<version>"
 room-runtime = "<version>"
@@ -25,7 +27,7 @@ espresso-core = "3.6.1"  # Unificamos a una sola versión y nombre
 play-services-maps = "19.0.0"
 
 # Firebase
-firebase-bom = "33.6.0"
+firebase-bom = "33.7.0"
 firebase-common-ktx = "21.0.0"
 
 # Google Services Plugin
@@ -38,11 +40,14 @@ room-ktx = "2.6.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-espresso-core-v351 = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core-version" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment-ktx" }
 androidx-room-compiler-vversion = { module = "androidx.room:room-compiler", version.ref = "room-compiler-version" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room-runtime" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 firebase-bom-v3223 = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom-version" }
 glide-v4151 = { module = "com.github.bumptech.glide:glide", version.ref = "glide-version" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
+hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt-android" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

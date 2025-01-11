@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
     id("kotlin-kapt") // The kapt plugin is applied here
+    id("com.google.dagger.hilt.android") version "2.51.1" apply false
 }
 
 android {
@@ -64,7 +65,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-
+    implementation (libs.androidx.fragment.ktx)
     // Retrofit and Gson are used for networking and JSON conversion
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
@@ -75,6 +76,9 @@ dependencies {
     // Glide and Picasso are used for image loading
     implementation(libs.glide.v4151)
     implementation(libs.picasso)
+
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
 
     // Room database dependencies
     implementation(libs.androidx.room.runtime)

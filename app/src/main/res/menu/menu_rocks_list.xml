@@ -15,7 +15,8 @@
         android:id="@+id/action_view_favorites"
         android:title="@string/view_favorites"
         android:icon="@drawable/ic_star"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
+
 
     <!-- Logout -->
     <item
