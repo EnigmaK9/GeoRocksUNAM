@@ -4,6 +4,7 @@ package com.enigma.georocks.application
 
 import android.app.Application
 import androidx.room.Room
+import com.enigma.georocks.data.DiskCacheManager  // <-- Make sure this import is present
 import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.data.db.FavoriteRepository
 import com.enigma.georocks.data.db.GeoRocksDatabase
@@ -19,14 +20,18 @@ class GeoRocksApp : Application() {
     lateinit var favoriteRepository: FavoriteRepository
         private set
 
+    // Add DiskCacheManager
+    lateinit var diskCacheManager: DiskCacheManager
+        private set
+
     override fun onCreate() {
         super.onCreate()
 
-        // Retrofit is initialized
+        // Retrofit initialization
         val retrofit: Retrofit = RetrofitHelper().getRetrofit()
         val apiService = retrofit.create(RockApiService::class.java)
 
-        // Room database is initialized
+        // Room database initialization
         val database = Room.databaseBuilder(
             applicationContext,
             GeoRocksDatabase::class.java,
@@ -35,8 +40,11 @@ class GeoRocksApp : Application() {
 
         val favoriteRockDao = database.favoriteRockDao()
 
-        // Repositories are initialized
+        // Repositories
         repository = RockRepository(apiService, favoriteRockDao)
         favoriteRepository = FavoriteRepository(favoriteRockDao)
+
+        // DiskCacheManager
+        diskCacheManager = DiskCacheManager(this)
     }
 }

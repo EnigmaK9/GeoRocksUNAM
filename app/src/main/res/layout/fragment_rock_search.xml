@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Este es el layout modificado para usar solo View Binding.
+     Se ha eliminado la etiqueta <layout> y el bloque <data>.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llSearchContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ui.fragments.RocksSearchFragment">
+
+    <!-- EditText para ingresar el término de búsqueda -->
+    <EditText
+        android:id="@+id/etSearchTerm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/search_hint"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Botón para iniciar la búsqueda -->
+    <Button
+        android:id="@+id/btnSearchRocks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/search_button_text"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ProgressBar para indicar carga durante la búsqueda -->
+    <ProgressBar
+        android:id="@+id/pbSearchLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        android:layout_gravity="center_horizontal" />
+
+    <!-- RecyclerView para mostrar los resultados de la búsqueda -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSearchResults"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        tools:listitem="@layout/rock_element"
+        android:clipToPadding="false" />
+
+</LinearLayout>

@@ -55,6 +55,7 @@ android {
     buildFeatures {
         // View binding is enabled
         viewBinding = true
+        dataBinding = true
     }
 }
 

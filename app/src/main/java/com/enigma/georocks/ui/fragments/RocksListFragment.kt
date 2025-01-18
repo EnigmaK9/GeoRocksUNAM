@@ -1,12 +1,12 @@
-// ============================
-// file path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/fragments/RocksListFragment.kt
-// ============================
+// File path: app/src/main/java/com/enigma/georocks/ui/fragments/RocksListFragment.kt
 
 package com.enigma.georocks.ui.fragments
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -18,29 +18,44 @@ import com.enigma.georocks.R
 import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.data.db.FavoriteRockEntity
-import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.FragmentRocksListBinding
 import com.enigma.georocks.ui.activities.LoginActivity
 import com.enigma.georocks.ui.adapters.RocksAdapter
-import com.enigma.georocks.ui.adapters.RocksViewHolder
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+/**
+ * RocksListFragment displays a list of rocks fetched from an API.
+ * It includes a search feature using a SearchView and toggles between
+ * showing all rocks or favorite rocks.
+ */
 class RocksListFragment : Fragment() {
 
+    // View binding for fragment_rocks_list.xml
     private var _binding: FragmentRocksListBinding? = null
     private val binding get() = _binding!!
 
+    // Firebase Auth instance
     private lateinit var auth: FirebaseAuth
+
+    // Repository for fetching rocks and details
     private lateinit var repository: RockRepository
+
+    // Adapter for displaying the list of rocks
     private lateinit var rocksAdapter: RocksAdapter
 
+    // A cached list of all rocks fetched from the API
     private var fullRocksList: MutableList<RockDto> = mutableListOf()
+
+    // A flag to indicate whether favorites are being shown
     private var showingFavorites: Boolean = false
 
+    /**
+     * The fragment's view is inflated using FragmentRocksListBinding.
+     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -51,78 +66,64 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * FirebaseAuth and the repository are initialized, and the RecyclerView is configured with a LayoutManager
-     * and an initially empty adapter to avoid layout warnings.
+     * FirebaseAuth, the RockRepository, and the RecyclerView are set up here.
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         repository = (requireActivity().application as GeoRocksApp).repository
         auth = FirebaseAuth.getInstance()
 
-        setupToolbar()
-        setupMenu()
-
-        // The LayoutManager is set so that the RecyclerView can lay out items vertically.
+        // A linear LayoutManager is used for the RecyclerView
         binding.rvRocks.layoutManager = LinearLayoutManager(requireContext())
 
-        // An initially empty adapter is created to avoid "No adapter attached" warnings.
+        // An empty adapter is set initially
         rocksAdapter = RocksAdapter(emptyList()) { rockId, viewHolder ->
-            // Details are loaded using a coroutine.
+            // Additional details can be loaded asynchronously
             viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    val detail: RockDetailDto = repository.getRockDetail(rockId)
+                    val detail = repository.getRockDetail(rockId)
                     viewHolder.updateDetails(detail.aMemberOf, detail.color)
                 } catch (e: Exception) {
-                    // The error is handled silently or logged if desired.
+                    Log.e("RocksListFragment", "Error loading rock detail: ${e.localizedMessage}")
                 }
             }
         }
-
-        // The adapter is attached to the RecyclerView.
         binding.rvRocks.adapter = rocksAdapter
 
-        // Data is loaded next.
+        // The menu (favorites, logout, and search) is configured
+        setupMenu()
+
+        // The initial list of rocks is loaded
         loadRocks()
     }
 
     /**
-     * The FavoriteRepository instance is retrieved from the Application.
-     */
-    private fun getFavoriteRepository() =
-        (requireActivity().application as GeoRocksApp).favoriteRepository
-
-    /**
-     * The Toolbar is set up along with its basic logout listener.
-     */
-    private fun setupToolbar() {
-        binding.toolbarRocksList.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_logout -> {
-                    performLogout()
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    /**
-     * The menu is added to the host Activity, including search and view favorites.
+     * The menu with "Favorites", "Logout", and a SearchView is set up using a MenuProvider.
      */
     private fun setupMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                // The custom menu for rock listing is inflated
                 menuInflater.inflate(R.menu.menu_rocks_list, menu)
 
-                // The SearchView is set up.
+                // The search action is retrieved from the menu
                 val searchItem = menu.findItem(R.id.action_search)
-                val searchView = searchItem?.actionView as? android.widget.SearchView
+                val searchView = searchItem?.actionView as? SearchView
                 searchView?.queryHint = getString(R.string.menu_search_hint)
-                searchView?.setOnQueryTextListener(object : android.widget.SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean = false
+
+                // A listener is set for text changes in the SearchView
+                searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        // Optionally hide the keyboard if desired
+                        return false
+                    }
+
                     override fun onQueryTextChange(newText: String?): Boolean {
-                        filterRocks(newText ?: "")
+                        // The search query is passed to filterRocks
+                        val query = newText.orEmpty()
+                        Log.d("RocksListFragment", "Search query: $query")
+                        filterRocks(query)
                         return true
                     }
                 })
@@ -138,6 +139,10 @@ class RocksListFragment : Fragment() {
                         }
                         true
                     }
+                    R.id.action_logout -> {
+                        performLogout()
+                        true
+                    }
                     else -> false
                 }
             }
@@ -145,66 +150,82 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * Rocks are loaded using coroutines by calling the suspend method getRocksApiary().
+     * The rocks are fetched from the API in a coroutine and updated in the adapter.
      */
     private fun loadRocks() {
         binding.pbLoading.visibility = View.VISIBLE
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // The backend service is contacted to get the rocks.
                 val rocks = repository.getRocksApiary()
                 fullRocksList = rocks
 
-                // The adapter is updated with the newly loaded data.
-                rocksAdapter.updateData(rocks)
-
+                withContext(Dispatchers.Main) {
+                    rocksAdapter.updateData(rocks)
+                }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "No connection available", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "No connection available", Toast.LENGTH_SHORT).show()
+                    Log.e("RocksListFragment", "Error fetching rocks: ${e.localizedMessage}")
+                }
             } finally {
-                binding.pbLoading.visibility = View.GONE
+                withContext(Dispatchers.Main) {
+                    binding.pbLoading.visibility = View.GONE
+                }
             }
         }
     }
 
     /**
-     * The list of rocks is filtered based on the search query and whether favorites are being shown.
+     * The search query is used to filter rocks by title. If favorites are shown, only favorite rocks are filtered.
      */
     private fun filterRocks(query: String) {
         if (showingFavorites) {
-            // If favorites are being shown, they are filtered from the database.
-            CoroutineScope(Dispatchers.Main).launch {
-                val favorites = getFavoriteRepository().getAllFavorites()
-                val favAsRockDto = favorites.map { it.toRockDto() }
-                val filtered = favAsRockDto.filter {
-                    it.title?.contains(query, ignoreCase = true) == true
+            // Filter favorites in the local database
+            lifecycleScope.launch(Dispatchers.IO) {
+                val favoriteEntities = getFavoriteRepository().getAllFavorites()
+                val favoriteRocks = favoriteEntities.map { it.toRockDto() }
+                val filtered = if (query.isBlank()) {
+                    favoriteRocks
+                } else {
+                    favoriteRocks.filter {
+                        it.title?.contains(query, ignoreCase = true) == true
+                    }
                 }
-                rocksAdapter.updateData(filtered)
+                withContext(Dispatchers.Main) {
+                    rocksAdapter.updateData(filtered)
+                }
             }
         } else {
-            // Otherwise, the full list loaded in memory is filtered.
-            val filteredList = fullRocksList.filter { rock ->
-                rock.title?.contains(query, ignoreCase = true) == true
+            // Filter from the full list
+            val filteredList = if (query.isBlank()) {
+                fullRocksList
+            } else {
+                fullRocksList.filter {
+                    it.title?.contains(query, ignoreCase = true) == true
+                }
             }
             rocksAdapter.updateData(filteredList)
         }
     }
 
     /**
-     * Favorites are shown by retrieving them from Room.
+     * Favorites from Room are displayed.
      */
     private fun showFavorites() {
         showingFavorites = true
         Toast.makeText(requireContext(), "Now showing Favorites", Toast.LENGTH_SHORT).show()
-        lifecycleScope.launch(Dispatchers.Main) {
-            val favoriteRepo = getFavoriteRepository()
-            val favoriteEntities: List<FavoriteRockEntity> = favoriteRepo.getAllFavorites()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val favoriteEntities = getFavoriteRepository().getAllFavorites()
             val favoriteRocks = favoriteEntities.map { it.toRockDto() }
-            rocksAdapter.updateData(favoriteRocks)
+
+            withContext(Dispatchers.Main) {
+                rocksAdapter.updateData(favoriteRocks)
+            }
         }
     }
 
     /**
-     * The original full list is restored if it was filtered.
+     * The full list is restored if it was previously filtered by favorites.
      */
     private fun showAllRocks() {
         showingFavorites = false
@@ -213,18 +234,7 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * A FavoriteRockEntity is converted to RockDto for display in the RecyclerView.
-     */
-    private fun FavoriteRockEntity.toRockDto(): RockDto {
-        return RockDto(
-            id = this.rockId,
-            thumbnail = this.thumbnail,
-            title = this.title
-        )
-    }
-
-    /**
-     * The user is logged out of FirebaseAuth, returning to the Login screen.
+     * The user is logged out from Firebase, and LoginActivity is started.
      */
     private fun performLogout() {
         auth.signOut()
@@ -235,10 +245,27 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * The binding is cleared when the view is destroyed.
+     * Helper function to retrieve FavoriteRepository from the application.
+     */
+    private fun getFavoriteRepository() =
+        (requireActivity().application as GeoRocksApp).favoriteRepository
+
+    /**
+     * The ViewBinding is cleared when the view is destroyed.
      */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    /**
+     * Converts a FavoriteRockEntity to a RockDto for displaying in the adapter.
+     */
+    private fun FavoriteRockEntity.toRockDto(): RockDto {
+        return RockDto(
+            id = this.rockId,
+            thumbnail = this.thumbnail,
+            title = this.title
+        )
     }
 }

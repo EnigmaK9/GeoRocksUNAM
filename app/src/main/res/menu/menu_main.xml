@@ -1,8 +1,19 @@
+<!-- File path: app/src/main/res/menu/menu_main.xml -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Logout or "close session" item -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/close_session"
         android:orderInCategory="100"
         app:showAsAction="never" />
+
+    <!-- Item to open the RocksSearchFragment -->
+    <item
+        android:id="@+id/action_open_search"
+        android:title="@string/open_search"
+        android:icon="@drawable/ic_search"
+        android:orderInCategory="101"
+        app:showAsAction="always" />
 </menu>

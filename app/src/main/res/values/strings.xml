@@ -103,4 +103,7 @@
     <string name="view_favorites">View Favorites</string>
     <string name="rock_thumbnail">Rock Thumbnail.</string>
     <string name="no_favorites_available">No Favorites Available.</string>
+    <string name="open_search">Open Search.</string>
+    <string name="search_hint">Hint: to do</string>
+    <string name="search_button_text">Search Button Text.</string>
 </resources>

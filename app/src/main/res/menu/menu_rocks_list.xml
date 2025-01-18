@@ -2,13 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Search icon -->
+    <!-- Search icon item -->
     <item
         android:id="@+id/action_search"
         android:title="@string/search"
         android:icon="@drawable/ic_search"
         app:actionViewClass="android.widget.SearchView"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom|collapseActionView" />
 
     <!-- View Favorites -->
     <item
@@ -17,11 +17,11 @@
         android:icon="@drawable/ic_star"
         app:showAsAction="ifRoom" />
 
-
     <!-- Logout -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
         android:icon="@drawable/ic_logout"
         app:showAsAction="always" />
+
 </menu>
