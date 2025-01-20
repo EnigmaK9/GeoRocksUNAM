@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.MediaController
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.enigma.georocks.R
@@ -79,8 +80,9 @@ class RockDetailFragment : Fragment() {
                         }
 
                         isFavorite = favoriteRepo.isRockFavorited(id)
+                        Log.i("RockDetailFragment", "Initial isFavorite: $isFavorite")
                         updateHeartIcon(isFavorite)
-                        Log.d("RockDetailFragment", "Rock details: $rockDetail")
+                        Log.i("RockDetailFragment", "Rock details: $rockDetail")
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
@@ -108,13 +110,14 @@ class RockDetailFragment : Fragment() {
                             )
                             repository.addToFavorites(rockDto)
                             isFavorite = true
+                            Log.i("RockDetailFragment", "isFavorite set to true")
                             updateHeartIcon(isFavorite)
                             Toast.makeText(
                                 requireContext(),
                                 "Added to favorites",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            Log.d("RockDetailFragment", "Rock ID $id added to favorites.")
+                            Log.i("RockDetailFragment", "Rock ID $id added to favorites.")
                         } else {
                             val rockDto = RockDto(
                                 id = id,
@@ -123,13 +126,14 @@ class RockDetailFragment : Fragment() {
                             )
                             repository.removeFromFavorites(rockDto)
                             isFavorite = false
+                            Log.i("RockDetailFragment", "isFavorite set to false")
                             updateHeartIcon(isFavorite)
                             Toast.makeText(
                                 requireContext(),
                                 "Removed from favorites",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            Log.d("RockDetailFragment", "Rock ID $id removed from favorites.")
+                            Log.i("RockDetailFragment", "Rock ID $id removed from favorites.")
                         }
                     } catch (e: Exception) {
                         Toast.makeText(requireContext(), "Operation failed", Toast.LENGTH_SHORT)
@@ -142,11 +146,17 @@ class RockDetailFragment : Fragment() {
     }
 
     private fun updateHeartIcon(favorite: Boolean) {
+        Log.i("RockDetailFragment", "updateHeartIcon called with favorite: $favorite")
         if (favorite) {
-            binding.ivFavorite.setImageResource(R.drawable.ic_favorite_filled)
+            val drawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_favorite_filled)
+            binding.ivFavorite.setImageDrawable(drawable)
+            Log.i("RockDetailFragment", "Set favorite icon to filled.")
         } else {
-            binding.ivFavorite.setImageResource(R.drawable.ic_favorite_border)
+            val drawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_favorite_border)
+            binding.ivFavorite.setImageDrawable(drawable)
+            Log.i("RockDetailFragment", "Set favorite icon to border.")
         }
+        binding.ivFavorite.setColorFilter(null) // Elimina cualquier filtro de color
     }
 
     override fun onDestroyView() {

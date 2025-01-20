@@ -25,13 +25,16 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Horizontal container for heart and -->
+                    <!-- Horizontal container for heart and title -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_horizontal"
-                        android:paddingBottom="10dp">
+                        android:gravity="center_vertical"
+                        android:paddingBottom="10dp"
+                        android:paddingTop="16dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
 
                         <TextView
                             android:id="@+id/tvTitle"
@@ -50,20 +53,21 @@
                             android:padding="8dp"
                             android:src="@drawable/ic_favorite_border"
                             android:contentDescription="@string/favorite"
-                            android:layout_marginTop="16dp"
-                            android:layout_marginBottom="16dp"
                             android:clickable="true"
-                            android:focusable="true" />
+                            android:focusable="true"
+                            app:tint="@null" />
 
                     </LinearLayout>
 
                     <com.makeramen.roundedimageview.RoundedImageView
                         android:id="@+id/ivImage"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="200dp"
                         android:layout_marginStart="20dp"
                         android:layout_marginEnd="20dp"
+                        android:layout_marginBottom="16dp"
                         app:riv_corner_radius="10dp"
+                        android:scaleType="centerCrop"
                         tools:src="@mipmap/ic_launcher" />
 
                     <TextView
@@ -71,9 +75,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/ubuntu"
-                        android:paddingLeft="15dp"
+                        android:paddingStart="15dp"
                         android:paddingTop="15dp"
-                        android:paddingRight="15dp"
+                        android:paddingEnd="15dp"
                         android:paddingBottom="10dp"
                         android:textColor="@color/white"
                         android:textSize="20sp"
@@ -84,7 +88,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/ubuntu"
-                        android:paddingLeft="15dp"
+                        android:paddingStart="15dp"
                         android:paddingTop="15dp"
                         android:textColor="@color/white"
                         android:textSize="18sp"
@@ -95,20 +99,21 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/ubuntu"
-                        android:paddingLeft="15dp"
+                        android:paddingStart="15dp"
                         android:paddingTop="15dp"
                         android:textColor="@color/white"
                         android:textSize="18sp"
                         tools:text="Color: Light Gray" />
 
-                </LinearLayout>
+                    <VideoView
+                        android:id="@+id/vvRockVideo"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp" />
 
-                <!-- VideoView -->
-                <VideoView
-                    android:id="@+id/vvRockVideo"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginTop="16dp" />
+                </LinearLayout>
 
             </ScrollView>
 
@@ -116,7 +121,8 @@
                 android:id="@+id/pbLoading"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_centerInParent="true" />
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
 
         </RelativeLayout>
 
