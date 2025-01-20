@@ -7,12 +7,26 @@
     <!-- High contrast colors -->
     <color name="high_contrast_white">#ffffff</color>
     <color name="high_contrast_text">#000000</color>
-    <color name="contrast_background">#f0f0f0</color>
 
     <!-- Other colors -->
-    <color name="white">#ffffff</color>
+    <color name="white">#FFFFFF</color>
     <color name="secondary_text_color">#757575</color>
 
+    <color name="rockyAppbarStart">#4A4A48</color>
+    <color name="rockyAppbarEnd">#6D6D6A</color>
+
+    <color name="rockyStartColor">#F5F5F5</color>
+    <color name="rockyEndColor">#D7D7D7</color>
+
+    <!-- A more earthy or grayish text color -->
+    <color name="rocky_text_color">#4E4E4E</color>
+
+    <!-- For the gradient background in the CardViews -->
+    <color name="rockyGradientStart">#E6E6E6</color>
+    <color name="rockyGradientEnd">#CBCBCB</color>
+
+    <!-- For example, your contrast background might be a lighter gray or beige -->
+    <color name="contrast_background">#F9F9F8</color>
 
     <color name="success_color">#4CAF50</color> <!-- Verde para éxito -->
     <color name="error_color">#F44336</color> <!-- Rojo para errores -->

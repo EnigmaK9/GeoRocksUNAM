@@ -1,3 +1,5 @@
+// File path: app/src/main/java/com/enigma/georocks/utils/Constants.kt
+
 package com.enigma.georocks.utils
 
 object Constants {

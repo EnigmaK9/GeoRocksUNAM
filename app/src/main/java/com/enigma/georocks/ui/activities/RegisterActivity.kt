@@ -1,3 +1,5 @@
+// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RegisterActivity.kt
+
 package com.enigma.georocks.ui.activities
 
 import android.content.Intent
@@ -17,32 +19,32 @@ import com.google.android.material.snackbar.Snackbar
 
 class RegisterActivity : AppCompatActivity() {
 
-    // Instancia de View Binding
+    // Instance of View Binding
     private lateinit var binding: ActivityRegisterBinding
 
-    // Instancia de FirebaseAuth
+    // Instance of FirebaseAuth
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inflar el layout usando View Binding
+        // Inflate the layout using View Binding
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Configurar la Toolbar
+        // Configure the Toolbar
         setSupportActionBar(binding.toolbarRegister)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Mostrar botón de retroceso
+        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back button
 
-        // Inicializar FirebaseAuth
+        // Initialize FirebaseAuth
         auth = FirebaseAuth.getInstance()
 
-        // Manejar el clic en el botón de registro
+        // Handle the click on the register button
         binding.btnRegister.setOnClickListener {
             val email = binding.etEmailRegister.text.toString().trim()
             val password = binding.etPasswordRegister.text.toString()
 
-            // Validaciones básicas
+            // Basic validations
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 if (isValidEmail(email)) {
                     if (isValidPassword(password)) {
@@ -71,7 +73,7 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    // Manejar el clic en el botón de retroceso en la Toolbar
+    // Handle the click on the back button in the Toolbar
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
@@ -88,16 +90,16 @@ class RegisterActivity : AppCompatActivity() {
     }
 
 
-    // Función para registrar al usuario en Firebase
+    // Function to register the user in Firebase
     private fun registerUser(email: String, password: String) {
-        // Mostrar ProgressBar y deshabilitar el botón de registro
+        // Show ProgressBar and disable the register button
         binding.progressBarRegister.visibility = View.VISIBLE
         binding.btnRegister.isEnabled = false
 
-        // Crear usuario con correo electrónico y contraseña
+        // Create user with email and password
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                // Ocultar ProgressBar y habilitar el botón de registro
+                // Hide ProgressBar and enable the register button
                 binding.progressBarRegister.visibility = View.GONE
                 binding.btnRegister.isEnabled = true
 
@@ -162,12 +164,12 @@ class RegisterActivity : AppCompatActivity() {
             }
     }
 
-    // Función para validar el formato del correo electrónico
+    // Function to validate the email format
     private fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-    // Función para validar la longitud de la contraseña
+    // Function to validate the password length
     private fun isValidPassword(password: String): Boolean {
         return password.length >= 6
     }

@@ -8,31 +8,54 @@
     <string name="rock_title">Rock Title</string>
     <string name="type">Type</string>
     <string name="color">Color</string>
+    <string name="no_chemical_properties">No chemical properties available</string>
+    <string name="none">None</string>
     <string name="hardness">Hardness</string>
+    <string name="google_maps_key">AIzaSyCODaSvoOUXoW5J1VUt0nBUiXL_PPUKnl4</string>
     <string name="formula">Formula</string>
     <string name="magnetic">Magnetic</string>
     <string name="localities">Localities</string>
     <string name="frequently_asked_questions">Frequently Asked Questions</string>
-    <string name="unknown_title">Unknown Title</string>
+
+    <!-- Labels with placeholders -->
     <string name="type_label">Type: %1$s</string>
     <string name="unknown_type">Unknown Type</string>
     <string name="color_label">Color: %1$s</string>
+    <string name="color_format">@string/color_label</string>
     <string name="unknown_color">Unknown Color</string>
     <string name="hardness_label">Hardness: %1$s</string>
     <string name="formula_label">Formula: %1$s</string>
     <string name="magnetic_label">Magnetic: %1$s</string>
     <string name="localities_label">Localities: %1$s</string>
+    <string name="health_risks_label">Health Risks: %1$s</string> <!-- Placeholder added -->
+    <string name="additional_images_label">Additional Images:\n%1$s</string> <!-- Placeholder added -->
+
+    <!-- Fallback / Misc -->
     <string name="unknown">Unknown</string>
     <string name="rock_details_missing">Rock details missing</string>
     <string name="error_loading_details">Error loading rock details</string>
     <string name="failed_to_load_details">Failed to load rock details</string>
     <string name="app_logo">App Logo</string>
+    <string name="no_faqs">No FAQs available.</string>
+    <string name="no_description_available">No Description Available</string>
+    <string name="no_additional_images">No Additional Images</string>
+    <string name="no_physical_properties">No physical properties available.</string>
+
+    <!-- Toolbar / General -->
+    <string name="rock_details">Rock Details</string>
+    <string name="logout">Log Out</string>
+
+    <!-- Messages used in the Activity -->
+    <string name="no_rock_id_provided">No rock ID provided.</string>
+    <string name="logged_out_successfully">Logged out successfully.</string>
+    <string name="google_maps_not_installed">Google Maps app is not installed.</string>
+    <string name="coordinates_missing">Coordinates are missing for this rock.</string>
 
     <!-- Login Activity -->
     <string name="email_hint">Enter your email</string>
     <string name="password_hint">Enter your password</string>
     <string name="login_button">Login</string>
-    <string name="register_prompt">Register</string>
+    <string name="register_prompt">@string/register</string>
     <string name="google_sign_in_button">Sign in with Google</string>
     <string name="close_session">Close session</string>
     <string name="forgot_password">Forgot password?</string>
@@ -46,7 +69,7 @@
     <!-- Register Activity -->
     <string name="register">Register</string>
     <string name="register_title">Register User</string>
-    <string name="register_button">Register</string>
+    <string name="register_button">@string/register</string>
 
     <!-- Registration Messages -->
     <string name="registration_success">Registration successful</string>
@@ -54,19 +77,34 @@
     <string name="password_too_short">Password must be at least 6 characters</string>
     <string name="invalid_email">Please enter a valid email address</string>
     <string name="complete_all_fields">Please complete all fields</string>
-
-    <!-- Specific Exception Messages -->
     <string name="email_already_registered">This email is already registered.</string>
     <string name="password_too_weak">The password is too weak.</string>
     <string name="invalid_email_address">Invalid email address.</string>
 
     <!-- Main Menu -->
-    <string name="action_register">Register</string>
+    <string name="action_register">@string/register</string>
 
     <!-- Additional Feedback Messages -->
     <string name="rock_details_loaded">Rock details loaded successfully</string>
     <string name="login_success">Login successful</string>
     <string name="login_failure">Authentication failed</string>
-    <string name="rock_details">Rock Details</string>
-    <string name="logout">Log Out</string>
+    <string name="no_faq_found">No FAQs found.</string>
+    <string name="menu_search">Menu Search.</string>
+    <string name="menu_search_hint">Search a Rock</string>
+    <string name="unknown_title">Name Unknown</string>
+    <string name="loading_type">Loading type…</string>
+    <string name="loading_color">Loading color…</string>
+    <string name="no_favorites">No favorites added yet.</string>
+    <string name="member_of_format">A member of: %1$s</string>
+    <string name="favorite">Favorite Rock.</string>
+    <string name="route_to_rock">Route to Rock.</string>
+    <string name="search">Search</string>
+    <string name="view_favorites">View Favorites</string>
+    <string name="rock_thumbnail">Rock Thumbnail.</string>
+    <string name="no_favorites_available">No Favorites Available.</string>
+    <string name="open_search">Open Search.</string>
+    <string name="search_hint">Hint: to do</string>
+    <string name="search_button_text">Search Button Text.</string>
+    <string name="mock_backend_info">Rock Info</string>
+    <string name="favorite_rocks">Favorite Rocks</string>
 </resources>

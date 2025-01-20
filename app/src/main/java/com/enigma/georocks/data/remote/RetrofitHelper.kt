@@ -1,3 +1,4 @@
+// /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/data/remote/RetroFitHelper.kt
 package com.enigma.georocks.data.remote
 
 import com.enigma.georocks.utils.Constants
@@ -10,7 +11,7 @@ class RetrofitHelper {
     fun getRetrofit(): Retrofit {
 
         val interceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY // Nivel de detalle de los logs
+            level = HttpLoggingInterceptor.Level.BODY // Log detail level
         }
 
         val client = OkHttpClient.Builder().apply {
@@ -18,9 +19,9 @@ class RetrofitHelper {
         }.build()
 
         return Retrofit.Builder()
-            .baseUrl(Constants.BASE_URL) // Asegúrate de que este sea el URL base correcto
+            .baseUrl(Constants.BASE_URL) // correct base URL
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create()) // Convertidor para JSON
+            .addConverterFactory(GsonConverterFactory.create()) // Converter for JSON
             .build()
     }
 }

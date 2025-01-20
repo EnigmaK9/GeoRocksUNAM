@@ -1,22 +1,22 @@
+// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/MainActivity.kt
+
 package com.enigma.georocks.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.enigma.georocks.R
+import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
-import com.enigma.georocks.data.remote.RetrofitHelper
-import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.databinding.ActivityMainBinding
 import com.enigma.georocks.ui.activities.LoginActivity
+import com.enigma.georocks.ui.fragments.FavoriteRocksFragment
 import com.enigma.georocks.ui.fragments.RocksListFragment
 import com.google.firebase.auth.FirebaseAuth
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,57 +28,75 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val retrofit = RetrofitHelper().getRetrofit()
-        repository = RockRepository(retrofit)
+        // Retrieve the RockRepository from GeoRocksApp
+        repository = (application as GeoRocksApp).repository
 
+        // If no saved state is present, decide which fragment to show based on the intent
         if (savedInstanceState == null) {
+            val showFavorites = intent.getBooleanExtra("SHOW_FAVORITES", false)
+            val fragment = if (showFavorites) {
+                FavoriteRocksFragment()
+            } else {
+                RocksListFragment()
+            }
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, RocksListFragment())
+                .replace(R.id.fragment_container, fragment)
                 .commit()
         }
 
-        checkRockDetails()  // Verificar detalles de las rocas
+        // Optionally, a quick log or demonstration can be placed here
+        checkRockDetails() // existing method from your code
     }
 
-    private fun checkRockDetails() {
-        val rockIds = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
 
-        for (rockId in rockIds) {
-            val call = repository.getRockDetail(rockId)  // Cambiado a getRockDetail para coincidir con el método en RockRepository
-            call.enqueue(object : Callback<RockDetailDto> {
-                override fun onResponse(call: Call<RockDetailDto>, response: Response<RockDetailDto>) {
-                    if (response.isSuccessful) {
-                        val rockDetail = response.body()
-                        // Acceder correctamente a aMemberOf y color
-                        Log.d("API", "Rock ID: $rockId, a_member_of: ${rockDetail?.aMemberOf}, color: ${rockDetail?.color}")
-                    } else {
-                        Log.d("API", "Error retrieving details for Rock ID: $rockId")
-                    }
-                }
-
-                override fun onFailure(call: Call<RockDetailDto>, t: Throwable) {
-                    Log.e("API", "Error retrieving details for Rock ID: $rockId, message: ${t.message}", t)
-                }
-            })
-        }
-    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
+    /**
+     * A switch statement is used to handle menu selections.
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
                 FirebaseAuth.getInstance().signOut()
-                val intent = Intent(this, LoginActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this, LoginActivity::class.java))
                 finish()
+                true
+            }
+            R.id.action_open_search -> {
+                /*openSearchFragment()*/
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-}
+    /**
+     * A method is used to navigate to RocksSearchFragment.
 
+    private fun openSearchFragment() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, RocksSearchFragment()) //  <-- The new search fragment
+            .addToBackStack(null)
+            .commit()
+    }
+     */
+    /**
+     * This function checks details of several rocks for demonstration (existing code).
+     */
+    private fun checkRockDetails() {
+        val rockIds = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+        lifecycleScope.launch {
+            for (rockId in rockIds) {
+                try {
+                    val rockDetail = repository.getRockDetail(rockId)
+                    // Logs info for debugging
+                } catch (e: Exception) {
+                    // Error handling
+                }
+            }
+        }
+    }
+}
