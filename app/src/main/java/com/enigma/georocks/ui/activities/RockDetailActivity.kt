@@ -1,7 +1,4 @@
-// ============================
-// // File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RockDetailActivity.kt
-// ============================
-
+// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RockDetailActivity.kt
 
 package com.enigma.georocks.ui.activities
 
@@ -23,6 +20,7 @@ import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.data.db.FavoriteRepository
 import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.ui.MainActivity
 import com.enigma.georocks.databinding.ActivityRockDetailBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -77,7 +75,7 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
             supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
 
-        // The getRockDetail(...) call is placed inside a coroutine to avoid enqueue(...) on a suspend function.
+        // Fetch rock details asynchronously
         lifecycleScope.launch {
             try {
                 val rockDetail: RockDetailDto = repository.getRockDetail(incomingRockId)
@@ -112,6 +110,15 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 toggleFavorite()
                 true
             }
+            R.id.action_view_favorites -> { // Handle the "View Favorites" option
+                // Start MainActivity with a flag to show FavoriteRocksFragment
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    putExtra("SHOW_FAVORITES", true)
+                }
+                startActivity(intent)
+                true
+            }
             android.R.id.home -> {
                 finish()
                 true
@@ -119,6 +126,7 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
 
     private fun toggleFavorite() {
         val rockId = currentRockId

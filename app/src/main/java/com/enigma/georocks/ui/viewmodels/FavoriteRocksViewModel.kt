@@ -1,4 +1,4 @@
-// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/viewmodels/FavoriteRocksViewModel.kt
+// File path: app/src/main/java/com/enigma/georocks/ui/viewmodels/FavoriteRocksViewModel.kt
 
 package com.enigma.georocks.ui.viewmodels
 
@@ -45,7 +45,7 @@ class FavoriteRocksViewModel @Inject constructor(
 
                 _favoriteRocks.postValue(rocksDto)
             } catch (e: Exception) {
-                _errorMessage.postValue("Error al cargar favoritos: ${e.message}")
+                _errorMessage.postValue("Error loading favorites: ${e.message}")
             }
         }
     }

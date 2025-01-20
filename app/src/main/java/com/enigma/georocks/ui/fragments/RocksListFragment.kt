@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -29,8 +28,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * RocksListFragment displays a list of rocks fetched from an API.
- * It includes a search feature using a SearchView and toggles between
- * showing all rocks or favorite rocks.
+ * It includes toggling between showing all rocks or favorite rocks.
  */
 class RocksListFragment : Fragment() {
 
@@ -90,7 +88,7 @@ class RocksListFragment : Fragment() {
         }
         binding.rvRocks.adapter = rocksAdapter
 
-        // The menu (favorites, logout, and search) is configured
+        // The menu (favorites and logout) is configured
         setupMenu()
 
         // The initial list of rocks is loaded
@@ -98,40 +96,22 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * The menu with "Favorites", "Logout", and a SearchView is set up using a MenuProvider.
+     * The menu with "Favorites" and "Logout" is set up using a MenuProvider.
      */
     private fun setupMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                // The custom menu for rock listing is inflated
+                // Inflate the updated menu for rock listing
                 menuInflater.inflate(R.menu.menu_rocks_list, menu)
 
-                // The search action is retrieved from the menu
-                val searchItem = menu.findItem(R.id.action_search)
-                val searchView = searchItem?.actionView as? SearchView
-                searchView?.queryHint = getString(R.string.menu_search_hint)
-
-                // A listener is set for text changes in the SearchView
-                searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        // Optionally hide the keyboard if desired
-                        return false
-                    }
-
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        // The search query is passed to filterRocks
-                        val query = newText.orEmpty()
-                        Log.d("RocksListFragment", "Search query: $query")
-                        filterRocks(query)
-                        return true
-                    }
-                })
+                // Since search is removed, no need to set up SearchView
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.action_view_favorites -> {
+                        // Toggle between showing all rocks and favorites
                         if (!showingFavorites) {
                             showFavorites()
                         } else {
@@ -176,37 +156,8 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * The search query is used to filter rocks by title. If favorites are shown, only favorite rocks are filtered.
+     * The search functionality is removed. Only filtering by favorites is available.
      */
-    private fun filterRocks(query: String) {
-        if (showingFavorites) {
-            // Filter favorites in the local database
-            lifecycleScope.launch(Dispatchers.IO) {
-                val favoriteEntities = getFavoriteRepository().getAllFavorites()
-                val favoriteRocks = favoriteEntities.map { it.toRockDto() }
-                val filtered = if (query.isBlank()) {
-                    favoriteRocks
-                } else {
-                    favoriteRocks.filter {
-                        it.title?.contains(query, ignoreCase = true) == true
-                    }
-                }
-                withContext(Dispatchers.Main) {
-                    rocksAdapter.updateData(filtered)
-                }
-            }
-        } else {
-            // Filter from the full list
-            val filteredList = if (query.isBlank()) {
-                fullRocksList
-            } else {
-                fullRocksList.filter {
-                    it.title?.contains(query, ignoreCase = true) == true
-                }
-            }
-            rocksAdapter.updateData(filteredList)
-        }
-    }
 
     /**
      * Favorites from Room are displayed.

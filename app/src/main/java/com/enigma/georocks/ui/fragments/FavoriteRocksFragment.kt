@@ -2,6 +2,7 @@
 
 package com.enigma.georocks.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.enigma.georocks.databinding.FragmentFavoriteRocksBinding
 import com.enigma.georocks.ui.adapters.FavoriteRocksAdapter
+import com.enigma.georocks.ui.activities.RockDetailActivity
 import com.enigma.georocks.ui.viewmodels.FavoriteRocksViewModel
 
 class FavoriteRocksFragment : Fragment() {
@@ -42,11 +44,10 @@ class FavoriteRocksFragment : Fragment() {
             // Handle click on a favorite rock
             Toast.makeText(requireContext(), "Selected Rock: ${rock.title}", Toast.LENGTH_SHORT).show()
             // Implement navigation to RockDetailActivity or another Fragment as needed
-            // Example (assuming you're using Navigation Component):
-            /*
-            val action = FavoriteRocksFragmentDirections.actionFavoriteRocksFragmentToRockDetailActivity(rock.id)
-            findNavController().navigate(action)
-            */
+            val intent = Intent(requireContext(), RockDetailActivity::class.java).apply {
+                putExtra("ROCK_ID", rock.id)
+            }
+            startActivity(intent)
         }
 
         // Set up the RecyclerView

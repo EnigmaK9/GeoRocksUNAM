@@ -5,11 +5,13 @@ package com.enigma.georocks.data.db
 import com.enigma.georocks.data.remote.model.RockDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-// Operations related to favorite rocks are managed here
-class FavoriteRepository(private val dao: FavoriteRockDao) {
+@Singleton
+class FavoriteRepository @Inject constructor(private val dao: FavoriteRockDao) {
 
-    // A rock is added to favorites
+    // Adds a rock to favorites
     suspend fun addToFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
         val entity = FavoriteRockEntity(
             rockId = rock.id,
@@ -19,22 +21,22 @@ class FavoriteRepository(private val dao: FavoriteRockDao) {
         dao.insertFavorite(entity)
     }
 
-    // A rock is removed from favorites
+    // Removes a rock from favorites
     suspend fun removeFromFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
         val entity = FavoriteRockEntity(
             rockId = rock.id,
-            title = rock.title,
-            thumbnail = rock.thumbnail
+            title = null,        // Title can be set to null or retained based on preference
+            thumbnail = null     // Thumbnail can be set to null or retained based on preference
         )
         dao.deleteFavorite(entity)
     }
 
-    // It is determined if a rock is favorited
+    // Checks if a rock is favorited
     suspend fun isRockFavorited(rockId: String): Boolean = withContext(Dispatchers.IO) {
         dao.getFavoriteById(rockId) != null
     }
 
-    // All favorite rocks are retrieved
+    // Retrieves all favorite rocks
     suspend fun getAllFavorites(): List<FavoriteRockEntity> = withContext(Dispatchers.IO) {
         dao.getAllFavorites()
     }

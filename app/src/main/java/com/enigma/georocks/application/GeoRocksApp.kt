@@ -10,7 +10,11 @@ import com.enigma.georocks.data.db.FavoriteRepository
 import com.enigma.georocks.data.db.GeoRocksDatabase
 import com.enigma.georocks.data.remote.api.RockApiService
 import com.enigma.georocks.data.remote.RetrofitHelper
+import dagger.hilt.android.HiltAndroidApp
 import retrofit2.Retrofit
+import javax.inject.Inject
+
+
 
 class GeoRocksApp : Application() {
 

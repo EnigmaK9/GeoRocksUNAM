@@ -13,6 +13,7 @@ import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.databinding.ActivityMainBinding
 import com.enigma.georocks.ui.activities.LoginActivity
+import com.enigma.georocks.ui.fragments.FavoriteRocksFragment
 import com.enigma.georocks.ui.fragments.RocksListFragment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -27,19 +28,26 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // The RockRepository is retrieved from GeoRocksApp
+        // Retrieve the RockRepository from GeoRocksApp
         repository = (application as GeoRocksApp).repository
 
-        // If no saved state is present, the RocksListFragment is shown
+        // If no saved state is present, decide which fragment to show based on the intent
         if (savedInstanceState == null) {
+            val showFavorites = intent.getBooleanExtra("SHOW_FAVORITES", false)
+            val fragment = if (showFavorites) {
+                FavoriteRocksFragment()
+            } else {
+                RocksListFragment()
+            }
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, RocksListFragment())
+                .replace(R.id.fragment_container, fragment)
                 .commit()
         }
 
         // Optionally, a quick log or demonstration can be placed here
         checkRockDetails() // existing method from your code
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)

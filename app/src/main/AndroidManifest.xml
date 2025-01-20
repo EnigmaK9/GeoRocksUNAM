@@ -45,6 +45,12 @@
             android:exported="true" />
 
         <activity
+            android:name=".ui.activities.InfoActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activities.FavoriteRocksActivity" />
+
+        <activity
             android:name=".ui.activities.LoginActivity"
             android:exported="true" />
 

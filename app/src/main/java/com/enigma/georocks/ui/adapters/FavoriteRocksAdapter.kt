@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.enigma.georocks.R
 import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.ItemFavoriteRockBinding
 

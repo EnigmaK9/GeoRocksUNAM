@@ -1,3 +1,4 @@
+<!-- File path: app/src/main/res/menu/menu_rock_detail.xml -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -9,7 +10,7 @@
         app:showAsAction="always"
         android:icon="@drawable/ic_favorite_border" />
 
-    <!-- Option to display the route to the rock -->
+    <!-- Option to show the route to the rock -->
     <item
         android:id="@+id/action_route"
         android:title="@string/route_to_rock"
@@ -17,11 +18,19 @@
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_directions" />
 
-    <!-- Option for logging out -->
+    <!-- Option to log out -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
         android:orderInCategory="102"
         app:showAsAction="always"
         android:icon="@drawable/ic_logout" />
+
+    <!-- New menu option: View Favorites -->
+    <item
+        android:id="@+id/action_view_favorites"
+        android:title="@string/view_favorites"
+        android:orderInCategory="103"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_favorite_filled" />
 </menu>

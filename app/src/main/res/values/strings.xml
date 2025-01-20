@@ -91,11 +91,10 @@
     <string name="no_faq_found">No FAQs found.</string>
     <string name="menu_search">Menu Search.</string>
     <string name="menu_search_hint">Search a Rock</string>
-
     <string name="unknown_title">Name Unknown</string>
     <string name="loading_type">Loading type…</string>
     <string name="loading_color">Loading color…</string>
-
+    <string name="no_favorites">No favorites added yet.</string>
     <string name="member_of_format">A member of: %1$s</string>
     <string name="favorite">Favorite Rock.</string>
     <string name="route_to_rock">Route to Rock.</string>
@@ -106,4 +105,6 @@
     <string name="open_search">Open Search.</string>
     <string name="search_hint">Hint: to do</string>
     <string name="search_button_text">Search Button Text.</string>
+    <string name="mock_backend_info">Rock Info</string>
+    <string name="favorite_rocks">Favorite Rocks</string>
 </resources>

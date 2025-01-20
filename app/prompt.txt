@@ -5,49 +5,32 @@
 package com.enigma.georocks.application
 
 import android.app.Application
-import androidx.room.Room
-import com.enigma.georocks.data.DiskCacheManager  // <-- Make sure this import is present
+import com.enigma.georocks.data.DiskCacheManager
 import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.data.db.FavoriteRepository
-import com.enigma.georocks.data.db.GeoRocksDatabase
-import com.enigma.georocks.data.remote.api.RockApiService
-import com.enigma.georocks.data.remote.RetrofitHelper
-import retrofit2.Retrofit
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
+/**
+ * The main Application class for GeoRocks.
+ * Annotated with @HiltAndroidApp to trigger Hilt's code generation,
+ * including a base class for your application that uses Hilt for dependency injection.
+ */
+@HiltAndroidApp
 class GeoRocksApp : Application() {
 
-    lateinit var repository: RockRepository
-        private set
+    // Inject RockRepository using Hilt
+    @Inject lateinit var repository: RockRepository
 
-    lateinit var favoriteRepository: FavoriteRepository
-        private set
+    // Inject FavoriteRepository using Hilt
+    @Inject lateinit var favoriteRepository: FavoriteRepository
 
-    // Add DiskCacheManager
-    lateinit var diskCacheManager: DiskCacheManager
-        private set
+    // Inject DiskCacheManager using Hilt
+    @Inject lateinit var diskCacheManager: DiskCacheManager
 
     override fun onCreate() {
         super.onCreate()
-
-        // Retrofit initialization
-        val retrofit: Retrofit = RetrofitHelper().getRetrofit()
-        val apiService = retrofit.create(RockApiService::class.java)
-
-        // Room database initialization
-        val database = Room.databaseBuilder(
-            applicationContext,
-            GeoRocksDatabase::class.java,
-            "georocks_database"
-        ).build()
-
-        val favoriteRockDao = database.favoriteRockDao()
-
-        // Repositories
-        repository = RockRepository(apiService, favoriteRockDao)
-        favoriteRepository = FavoriteRepository(favoriteRockDao)
-
-        // DiskCacheManager
-        diskCacheManager = DiskCacheManager(this)
+        // Hilt automatically injects the dependencies before onCreate is called
     }
 }
 
@@ -109,11 +92,13 @@ package com.enigma.georocks.data.db
 import com.enigma.georocks.data.remote.model.RockDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-// Operations related to favorite rocks are managed here
-class FavoriteRepository(private val dao: FavoriteRockDao) {
+@Singleton
+class FavoriteRepository @Inject constructor(private val dao: FavoriteRockDao) {
 
-    // A rock is added to favorites
+    // Adds a rock to favorites
     suspend fun addToFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
         val entity = FavoriteRockEntity(
             rockId = rock.id,
@@ -123,22 +108,22 @@ class FavoriteRepository(private val dao: FavoriteRockDao) {
         dao.insertFavorite(entity)
     }
 
-    // A rock is removed from favorites
+    // Removes a rock from favorites
     suspend fun removeFromFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
         val entity = FavoriteRockEntity(
             rockId = rock.id,
-            title = rock.title,
-            thumbnail = rock.thumbnail
+            title = null,        // Title can be set to null or retained based on preference
+            thumbnail = null     // Thumbnail can be set to null or retained based on preference
         )
         dao.deleteFavorite(entity)
     }
 
-    // It is determined if a rock is favorited
+    // Checks if a rock is favorited
     suspend fun isRockFavorited(rockId: String): Boolean = withContext(Dispatchers.IO) {
         dao.getFavoriteById(rockId) != null
     }
 
-    // All favorite rocks are retrieved
+    // Retrieves all favorite rocks
     suspend fun getAllFavorites(): List<FavoriteRockEntity> = withContext(Dispatchers.IO) {
         dao.getAllFavorites()
     }
@@ -543,6 +528,154 @@ class RockRepository(
 }
 
 
+----- C:\github\GeoRocksUNAM\app\src\main\java\com\enigma\georocks\di\AppModule.kt -----
+// File path: app/src/main/java/com/enigma/georocks/di/AppModule.kt
+
+package com.enigma.georocks.di
+
+import android.content.Context
+import androidx.room.Room
+import com.enigma.georocks.data.DiskCacheManager
+import com.enigma.georocks.data.RockRepository
+import com.enigma.georocks.data.db.FavoriteRockDao
+import com.enigma.georocks.data.db.FavoriteRepository
+import com.enigma.georocks.data.db.GeoRocksDatabase
+import com.enigma.georocks.data.remote.RetrofitHelper
+import com.enigma.georocks.data.remote.api.RockApiService
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    // Provide Retrofit instance
+    @Provides
+    @Singleton
+    fun provideRetrofit(): Retrofit = RetrofitHelper().getRetrofit()
+
+    // Provide RockApiService instance
+    @Provides
+    @Singleton
+    fun provideRockApiService(retrofit: Retrofit): RockApiService =
+        retrofit.create(RockApiService::class.java)
+
+    // Provide Room Database instance
+    @Provides
+    @Singleton
+    fun provideGeoRocksDatabase(@ApplicationContext app: Context): GeoRocksDatabase =
+        Room.databaseBuilder(
+            app,
+            GeoRocksDatabase::class.java,
+            "georocks_database"
+        ).fallbackToDestructiveMigration().build()
+
+    // Provide FavoriteRockDao instance
+    @Provides
+    @Singleton
+    fun provideFavoriteRockDao(db: GeoRocksDatabase): FavoriteRockDao =
+        db.favoriteRockDao()
+
+    // Provide RockRepository instance
+    @Provides
+    @Singleton
+    fun provideRockRepository(apiService: RockApiService, dao: FavoriteRockDao): RockRepository =
+        RockRepository(apiService, dao)
+
+    // Provide FavoriteRepository instance
+    @Provides
+    @Singleton
+    fun provideFavoriteRepository(dao: FavoriteRockDao): FavoriteRepository =
+        FavoriteRepository(dao)
+
+    // Provide DiskCacheManager instance
+    @Provides
+    @Singleton
+    fun provideDiskCacheManager(@ApplicationContext app: Context): DiskCacheManager =
+        DiskCacheManager(app)
+}
+
+
+----- C:\github\GeoRocksUNAM\app\src\main\java\com\enigma\georocks\ui\activities\FavoriteRocksActivity.kt -----
+// File path: app/src/main/java/com/enigma/georocks/ui/activities/FavoriteRocksActivity.kt
+
+package com.enigma.georocks.ui.activities
+
+import android.os.Bundle
+import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import com.enigma.georocks.R
+import com.enigma.georocks.databinding.ActivityFavoriteRocksBinding
+import com.enigma.georocks.ui.fragments.FavoriteRocksFragment
+
+class FavoriteRocksActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityFavoriteRocksBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityFavoriteRocksBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Configure the Toolbar
+        setSupportActionBar(binding.toolbarFavoriteRocks)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.favorite_rocks)
+
+        // Add the FavoriteRocksFragment
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.favorite_fragment_container, FavoriteRocksFragment())
+                .commit()
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle the back button in the Toolbar
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+}
+
+
+----- C:\github\GeoRocksUNAM\app\src\main\java\com\enigma\georocks\ui\activities\InfoActivity.kt -----
+// File path: app/src/main/java/com/enigma/georocks/ui/activities/InfoActivity.kt
+
+package com.enigma.georocks.ui.activities
+
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import com.enigma.georocks.R
+
+class InfoActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_info)
+
+        // Initialize Toolbar if needed
+        val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbarInfo)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.mock_backend_info)
+
+        // Additional setup to display backend information
+    }
+
+
+}
+
+
 ----- C:\github\GeoRocksUNAM\app\src\main\java\com\enigma\georocks\ui\activities\LoginActivity.kt -----
 // File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/LoginActivity.kt
 
@@ -942,10 +1075,7 @@ class ResetPasswordActivity : AppCompatActivity() {
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\java\com\enigma\georocks\ui\activities\RockDetailActivity.kt -----
-// ============================
-// // File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RockDetailActivity.kt
-// ============================
-
+// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RockDetailActivity.kt
 
 package com.enigma.georocks.ui.activities
 
@@ -962,11 +1092,11 @@ import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.enigma.georocks.R
-import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.data.db.FavoriteRepository
 import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.ui.MainActivity
 import com.enigma.georocks.databinding.ActivityRockDetailBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -975,17 +1105,31 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+/**
+ * RockDetailActivity displays detailed information about a specific rock.
+ * It integrates with Google Maps to show the rock's location and allows users
+ * to add or remove the rock from their favorites.
+ */
+@AndroidEntryPoint
 class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var binding: ActivityRockDetailBinding
-    private lateinit var repository: RockRepository
-    private lateinit var auth: FirebaseAuth
 
-    private val favoriteRepo: FavoriteRepository by lazy {
-        (application as GeoRocksApp).favoriteRepository
-    }
+    // Inject RockRepository using Hilt
+    @Inject
+    lateinit var repository: RockRepository
+
+    // Inject FavoriteRepository using Hilt
+    @Inject
+    lateinit var favoriteRepository: FavoriteRepository
+
+    // Inject FirebaseAuth using Hilt
+    @Inject
+    lateinit var auth: FirebaseAuth
 
     private var googleMap: GoogleMap? = null
 
@@ -1001,13 +1145,13 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityRockDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
+        // Setup the toolbar
         val toolbar: Toolbar = findViewById(R.id.toolbarRockDetail)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.rock_details)
 
-        repository = (application as GeoRocksApp).repository
+        // Retrieve the incoming Rock ID from the intent
         val incomingRockId = intent.getStringExtra("ROCK_ID")
 
         if (incomingRockId.isNullOrBlank()) {
@@ -1017,11 +1161,12 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         currentRockId = incomingRockId
 
+        // Initialize Google Maps
         val mapFragment =
             supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
 
-        // The getRockDetail(...) call is placed inside a coroutine to avoid enqueue(...) on a suspend function.
+        // Fetch rock details asynchronously
         lifecycleScope.launch {
             try {
                 val rockDetail: RockDetailDto = repository.getRockDetail(incomingRockId)
@@ -1056,6 +1201,15 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 toggleFavorite()
                 true
             }
+            R.id.action_view_favorites -> { // Handle the "View Favorites" option
+                // Start MainActivity with a flag to show FavoriteRocksFragment
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    putExtra("SHOW_FAVORITES", true)
+                }
+                startActivity(intent)
+                true
+            }
             android.R.id.home -> {
                 finish()
                 true
@@ -1064,6 +1218,11 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+
+    /**
+     * Toggles the current rock's favorite status.
+     * Adds to favorites if not already favorited, otherwise removes from favorites.
+     */
     private fun toggleFavorite() {
         val rockId = currentRockId
         if (rockId.isNullOrEmpty()) {
@@ -1075,14 +1234,14 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
             return
         }
         lifecycleScope.launch {
-            val isAlreadyFavorited = favoriteRepo.isRockFavorited(rockId)
+            val isAlreadyFavorited = favoriteRepository.isRockFavorited(rockId)
             if (!isAlreadyFavorited) {
                 val rockDto = RockDto(
                     id = rockId,
                     thumbnail = currentRockThumbnail,
                     title = currentRockTitle ?: ""
                 )
-                favoriteRepo.addToFavorites(rockDto)
+                favoriteRepository.addToFavorites(rockDto)
                 Toast.makeText(this@RockDetailActivity, "Added to favorites.", Toast.LENGTH_SHORT)
                     .show()
             } else {
@@ -1091,7 +1250,7 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                     thumbnail = currentRockThumbnail,
                     title = currentRockTitle ?: ""
                 )
-                favoriteRepo.removeFromFavorites(rockDto)
+                favoriteRepository.removeFromFavorites(rockDto)
                 Toast.makeText(
                     this@RockDetailActivity,
                     "Removed from favorites.",
@@ -1101,6 +1260,9 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Logs out the current user and redirects to the LoginActivity.
+     */
     private fun performLogout() {
         auth.signOut()
         Toast.makeText(this, R.string.logged_out_successfully, Toast.LENGTH_SHORT).show()
@@ -1108,7 +1270,12 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         finish()
     }
 
-    // This function is used after the coroutine call completes.
+    /**
+     * Updates the UI elements with the fetched rock details.
+     *
+     * @param rockId The ID of the current rock.
+     * @param rockDetail The detailed information of the rock.
+     */
     private fun updateUIWithDetails(rockId: String, rockDetail: RockDetailDto) {
         currentRockTitle = rockDetail.title
         currentRockThumbnail = rockDetail.image
@@ -1233,11 +1400,21 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Called when the Google Map is ready to be used.
+     *
+     * @param map The GoogleMap instance.
+     */
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
         updateMapMarker(map)
     }
 
+    /**
+     * Updates the map with a marker at the rock's location.
+     *
+     * @param map The GoogleMap instance.
+     */
     private fun updateMapMarker(map: GoogleMap) {
         if (rockLatitude != null && rockLongitude != null) {
             val location = LatLng(rockLatitude!!, rockLongitude!!)
@@ -1250,6 +1427,9 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Opens Google Maps with navigation to the rock's location.
+     */
     private fun openRouteInGoogleMaps() {
         if (rockLatitude == null || rockLongitude == null) {
             Toast.makeText(this, R.string.coordinates_missing, Toast.LENGTH_SHORT).show()
@@ -1279,6 +1459,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.enigma.georocks.R
 import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.ItemFavoriteRockBinding
 
@@ -1449,6 +1630,7 @@ class RocksViewHolder(
 
 package com.enigma.georocks.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -1460,6 +1642,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.enigma.georocks.databinding.FragmentFavoriteRocksBinding
 import com.enigma.georocks.ui.adapters.FavoriteRocksAdapter
+import com.enigma.georocks.ui.activities.RockDetailActivity
 import com.enigma.georocks.ui.viewmodels.FavoriteRocksViewModel
 
 class FavoriteRocksFragment : Fragment() {
@@ -1489,11 +1672,10 @@ class FavoriteRocksFragment : Fragment() {
             // Handle click on a favorite rock
             Toast.makeText(requireContext(), "Selected Rock: ${rock.title}", Toast.LENGTH_SHORT).show()
             // Implement navigation to RockDetailActivity or another Fragment as needed
-            // Example (assuming you're using Navigation Component):
-            /*
-            val action = FavoriteRocksFragmentDirections.actionFavoriteRocksFragmentToRockDetailActivity(rock.id)
-            findNavController().navigate(action)
-            */
+            val intent = Intent(requireContext(), RockDetailActivity::class.java).apply {
+                putExtra("ROCK_ID", rock.id)
+            }
+            startActivity(intent)
         }
 
         // Set up the RecyclerView
@@ -1716,7 +1898,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -1739,8 +1920,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * RocksListFragment displays a list of rocks fetched from an API.
- * It includes a search feature using a SearchView and toggles between
- * showing all rocks or favorite rocks.
+ * It includes toggling between showing all rocks or favorite rocks.
  */
 class RocksListFragment : Fragment() {
 
@@ -1800,7 +1980,7 @@ class RocksListFragment : Fragment() {
         }
         binding.rvRocks.adapter = rocksAdapter
 
-        // The menu (favorites, logout, and search) is configured
+        // The menu (favorites and logout) is configured
         setupMenu()
 
         // The initial list of rocks is loaded
@@ -1808,40 +1988,22 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * The menu with "Favorites", "Logout", and a SearchView is set up using a MenuProvider.
+     * The menu with "Favorites" and "Logout" is set up using a MenuProvider.
      */
     private fun setupMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                // The custom menu for rock listing is inflated
+                // Inflate the updated menu for rock listing
                 menuInflater.inflate(R.menu.menu_rocks_list, menu)
 
-                // The search action is retrieved from the menu
-                val searchItem = menu.findItem(R.id.action_search)
-                val searchView = searchItem?.actionView as? SearchView
-                searchView?.queryHint = getString(R.string.menu_search_hint)
-
-                // A listener is set for text changes in the SearchView
-                searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        // Optionally hide the keyboard if desired
-                        return false
-                    }
-
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        // The search query is passed to filterRocks
-                        val query = newText.orEmpty()
-                        Log.d("RocksListFragment", "Search query: $query")
-                        filterRocks(query)
-                        return true
-                    }
-                })
+                // Since search is removed, no need to set up SearchView
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.action_view_favorites -> {
+                        // Toggle between showing all rocks and favorites
                         if (!showingFavorites) {
                             showFavorites()
                         } else {
@@ -1886,37 +2048,8 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * The search query is used to filter rocks by title. If favorites are shown, only favorite rocks are filtered.
+     * The search functionality is removed. Only filtering by favorites is available.
      */
-    private fun filterRocks(query: String) {
-        if (showingFavorites) {
-            // Filter favorites in the local database
-            lifecycleScope.launch(Dispatchers.IO) {
-                val favoriteEntities = getFavoriteRepository().getAllFavorites()
-                val favoriteRocks = favoriteEntities.map { it.toRockDto() }
-                val filtered = if (query.isBlank()) {
-                    favoriteRocks
-                } else {
-                    favoriteRocks.filter {
-                        it.title?.contains(query, ignoreCase = true) == true
-                    }
-                }
-                withContext(Dispatchers.Main) {
-                    rocksAdapter.updateData(filtered)
-                }
-            }
-        } else {
-            // Filter from the full list
-            val filteredList = if (query.isBlank()) {
-                fullRocksList
-            } else {
-                fullRocksList.filter {
-                    it.title?.contains(query, ignoreCase = true) == true
-                }
-            }
-            rocksAdapter.updateData(filteredList)
-        }
-    }
 
     /**
      * Favorites from Room are displayed.
@@ -1987,7 +2120,7 @@ package com.enigma.georocks.ui.fragments
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\java\com\enigma\georocks\ui\viewmodels\FavoriteRocksViewModel.kt -----
-// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/viewmodels/FavoriteRocksViewModel.kt
+// File path: app/src/main/java/com/enigma/georocks/ui/viewmodels/FavoriteRocksViewModel.kt
 
 package com.enigma.georocks.ui.viewmodels
 
@@ -2034,7 +2167,7 @@ class FavoriteRocksViewModel @Inject constructor(
 
                 _favoriteRocks.postValue(rocksDto)
             } catch (e: Exception) {
-                _errorMessage.postValue("Error al cargar favoritos: ${e.message}")
+                _errorMessage.postValue("Error loading favorites: ${e.message}")
             }
         }
     }
@@ -2059,6 +2192,7 @@ import com.enigma.georocks.application.GeoRocksApp
 import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.databinding.ActivityMainBinding
 import com.enigma.georocks.ui.activities.LoginActivity
+import com.enigma.georocks.ui.fragments.FavoriteRocksFragment
 import com.enigma.georocks.ui.fragments.RocksListFragment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -2073,19 +2207,26 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // The RockRepository is retrieved from GeoRocksApp
+        // Retrieve the RockRepository from GeoRocksApp
         repository = (application as GeoRocksApp).repository
 
-        // If no saved state is present, the RocksListFragment is shown
+        // If no saved state is present, decide which fragment to show based on the intent
         if (savedInstanceState == null) {
+            val showFavorites = intent.getBooleanExtra("SHOW_FAVORITES", false)
+            val fragment = if (showFavorites) {
+                FavoriteRocksFragment()
+            } else {
+                RocksListFragment()
+            }
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, RocksListFragment())
+                .replace(R.id.fragment_container, fragment)
                 .commit()
         }
 
         // Optionally, a quick log or demonstration can be placed here
         checkRockDetails() // existing method from your code
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -2334,6 +2475,17 @@ object Constants {
     
 </vector>
 
+
+----- C:\github\GeoRocksUNAM\app\src\main\res\drawable\ic_info.xml -----
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <path
+        android:pathData="M11,17h2v-6h-2v6zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM11,9h2L13,7h-2v2z"
+        android:fillColor="#fff"/>
+</vector>
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\drawable\ic_launcher_background.xml -----
 <?xml version="1.0" encoding="utf-8"?>
@@ -2652,6 +2804,88 @@ object Constants {
     </aapt:attr>
   </path>
 </vector>
+
+
+----- C:\github\GeoRocksUNAM\app\src\main\res\layout\activity_favorite_rocks.xml -----
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_favorite_rocks"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activities.FavoriteRocksActivity">
+
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarFavoriteRocks"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:title="@string/favorite_rocks" />
+
+    <!-- Fragment Container -->
+    <FrameLayout
+        android:id="@+id/favorite_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <!-- File path: app/src/main/res/layout/activity_favorite_rocks.xml -->
+
+
+----- C:\github\GeoRocksUNAM\app\src\main\res\layout\activity_info.xml -----
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- AppBar with Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/rockyAppbarStart">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarInfo"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:title="@string/mock_backend_info"
+            android:titleTextColor="@color/high_contrast_white"
+            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:fillViewport="true"
+        android:background="@color/contrast_background"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Content Displaying Mock Backend Information -->
+            <TextView
+                android:id="@+id/tvInfoContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Here you can display interesting details about your Mock Backend, such as API URLs, endpoint examples, configuration tips, etc."
+                android:textColor="@color/rocky_text_color"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <!-- File path: app/src/main/res/layout/activity_info.xml -->
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\layout\activity_login.xml -----
@@ -3279,31 +3513,33 @@ object Constants {
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\layout\fragment_favorite_rocks.xml -----
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_favorite_rocks"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.fragments.FavoriteRocksFragment">
 
-    <!-- TextView shown when there are no favorites -->
+    <!-- TextView to display when there are no favorites -->
     <TextView
         android:id="@+id/tvNoFavorites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/no_favorites_available"
+        android:text="@string/no_favorites"
+        android:textSize="18sp"
         android:visibility="gone"
-        android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RecyclerView to list favorite rocks -->
+    <!-- RecyclerView to display favorite rocks -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFavoriteRocks"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         android:padding="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toTopOf="parent"
@@ -3312,10 +3548,7 @@ object Constants {
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-    <!-- File path: /home/enigma/github/kotlin/georocksunam/app/src/main/res/layout/fragment_favorite_rocks.xml -->
-
+    <!-- File path: app/src/main/res/layout/fragment_favorite_rocks.xml -->
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\layout\fragment_rock_detail.xml -----
@@ -3507,121 +3740,68 @@ object Constants {
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\layout\fragment_rocks_list.xml -----
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_rocks_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.activities.RockDetailActivity">
+    tools:context=".ui.fragments.RocksListFragment">
 
-    <!-- AppBar with a gradient background -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/gradient_appbar">
+    <!-- Progress Bar to indicate loading -->
+    <ProgressBar
+        android:id="@+id/pbLoading"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbarRocksList"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:title="@string/app_name"
-            android:titleTextColor="@android:color/white"
-            app:menu="@menu/menu_rocks_list"
-            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Main content under the AppBar -->
-    <ScrollView
+    <!-- RecyclerView to display the list of rocks -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRocks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:fillViewport="true"
-        android:padding="0dp"> <!-- Removed extra padding so the card can fill more space -->
+        android:padding="16dp" />
 
-        <!-- A CardView that fills most of the screen -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="8dp"
-            android:foreground="?attr/selectableItemBackground"
-            android:elevation="3dp"
-            app:cardCornerRadius="8dp"
-            app:cardUseCompatPadding="true"
-            app:cardPreventCornerOverlap="true"
-            android:background="@drawable/gradient_box"
-            tools:ignore="NestedScrollView">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- ProgressBar for loading -->
-            <ProgressBar
-                android:id="@+id/pbLoading"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:visibility="gone"
-                android:layout_marginBottom="8dp" />
-
-            <!-- RecyclerView for Rocks -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvRocks"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:scrollbars="none" />
-
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</ScrollView>
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>
+    <!-- File path: app/src/main/res/layout/fragment_rocks_list.xml -->
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\layout\item_favorite_rock.xml -----
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    android:padding="8dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Thumbnail ImageView -->
+    <ImageView
+        android:id="@+id/ivRockThumbnail"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/rock_thumbnail"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Rock Title TextView -->
+    <TextView
+        android:id="@+id/tvRockTitle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:text="Rock Title"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="2"
+        app:layout_constraintStart_toEndOf="@id/ivRockThumbnail"
+        app:layout_constraintTop_toTopOf="@id/ivRockThumbnail"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <ImageView
-            android:id="@+id/ivRockThumbnail"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="@string/rock_thumbnail" />
-
-        <TextView
-            android:id="@+id/tvRockTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:text="@string/rock_title"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
-
-    <!-- File path: /home/enigma/github/kotlin/georocksunam/app/src/main/res/layout/item_favorite_rock.xml -->
-
-
+</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- File path: app/src/main/res/layout/item_favorite_rock.xml -->
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\layout\rock_element.xml -----
@@ -3727,6 +3907,7 @@ object Constants {
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\menu\menu_rock_detail.xml -----
+<!-- File path: app/src/main/res/menu/menu_rock_detail.xml -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -3738,7 +3919,7 @@ object Constants {
         app:showAsAction="always"
         android:icon="@drawable/ic_favorite_border" />
 
-    <!-- Option to display the route to the rock -->
+    <!-- Option to show the route to the rock -->
     <item
         android:id="@+id/action_route"
         android:title="@string/route_to_rock"
@@ -3746,37 +3927,37 @@ object Constants {
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_directions" />
 
-    <!-- Option for logging out -->
+    <!-- Option to log out -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
         android:orderInCategory="102"
         app:showAsAction="always"
         android:icon="@drawable/ic_logout" />
+
+    <!-- New menu option: View Favorites -->
+    <item
+        android:id="@+id/action_view_favorites"
+        android:title="@string/view_favorites"
+        android:orderInCategory="103"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_favorite_filled" />
 </menu>
 
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\menu\menu_rocks_list.xml -----
-<?xml version="1.0" encoding="utf-8"?>
+<!-- File path: app/src/main/res/menu/menu_rocks_list.xml -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Search icon item -->
-    <item
-        android:id="@+id/action_search"
-        android:title="@string/search"
-        android:icon="@drawable/ic_search"
-        app:actionViewClass="android.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView" />
-
-    <!-- View Favorites -->
+    <!-- Option to toggle favorite status -->
     <item
         android:id="@+id/action_view_favorites"
         android:title="@string/view_favorites"
         android:icon="@drawable/ic_star"
         app:showAsAction="ifRoom" />
 
-    <!-- Logout -->
+    <!-- Option for logging out -->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
@@ -3953,11 +4134,10 @@ object Constants {
     <string name="no_faq_found">No FAQs found.</string>
     <string name="menu_search">Menu Search.</string>
     <string name="menu_search_hint">Search a Rock</string>
-
     <string name="unknown_title">Name Unknown</string>
     <string name="loading_type">Loading type…</string>
     <string name="loading_color">Loading color…</string>
-
+    <string name="no_favorites">No favorites added yet.</string>
     <string name="member_of_format">A member of: %1$s</string>
     <string name="favorite">Favorite Rock.</string>
     <string name="route_to_rock">Route to Rock.</string>
@@ -3968,6 +4148,8 @@ object Constants {
     <string name="open_search">Open Search.</string>
     <string name="search_hint">Hint: to do</string>
     <string name="search_button_text">Search Button Text.</string>
+    <string name="mock_backend_info">Rock Info</string>
+    <string name="favorite_rocks">Favorite Rocks</string>
 </resources>
 
 
@@ -4019,6 +4201,7 @@ object Constants {
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="no_description_available">No Description Available</string>
+    <string name="favorite_rocks">Favorite Rocks</string>
 </resources>
 
 ----- C:\github\GeoRocksUNAM\app\src\main\res\values-night\themes.xml -----
@@ -4122,6 +4305,12 @@ object Constants {
         <activity
             android:name=".ui.activities.RockDetailActivity"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.activities.InfoActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activities.FavoriteRocksActivity" />
 
         <activity
             android:name=".ui.activities.LoginActivity"

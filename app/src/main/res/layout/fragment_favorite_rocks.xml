@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_favorite_rocks"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.fragments.FavoriteRocksFragment">
 
-    <!-- TextView shown when there are no favorites -->
+    <!-- TextView to display when there are no favorites -->
     <TextView
         android:id="@+id/tvNoFavorites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/no_favorites_available"
+        android:text="@string/no_favorites"
+        android:textSize="18sp"
         android:visibility="gone"
-        android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RecyclerView to list favorite rocks -->
+    <!-- RecyclerView to display favorite rocks -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFavoriteRocks"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         android:padding="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toTopOf="parent"
@@ -32,7 +34,4 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-    <!-- File path: /home/enigma/github/kotlin/georocksunam/app/src/main/res/layout/fragment_favorite_rocks.xml -->
-
+    <!-- File path: app/src/main/res/layout/fragment_favorite_rocks.xml -->
