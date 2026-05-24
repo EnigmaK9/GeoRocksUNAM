@@ -84,6 +84,7 @@ dependencies {
     // Room database dependencies
     implementation(libs.androidx.room.runtime)
     kapt(libs.androidx.room.compiler) // Annotation processing with kapt for Room
+    kapt("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
     implementation(libs.androidx.room.ktx)
 
     // Lifecycle-aware components
