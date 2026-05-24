@@ -107,12 +107,4 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core.v351)
 }
 
-configurations.all {
-    resolutionStrategy {
-        eachDependency {
-            if (requested.group == "com.squareup" && requested.name == "javapoet") {
-                useVersion("1.13.0")
-            }
-        }
-    }
-}
+// Removed resolutionStrategy for javapoet to avoid conflicts with Hilt 2.55
