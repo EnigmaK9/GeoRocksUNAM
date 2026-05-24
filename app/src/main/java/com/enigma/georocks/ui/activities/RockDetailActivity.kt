@@ -1,14 +1,10 @@
-// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RockDetailActivity.kt
-
 package com.enigma.georocks.ui.activities
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.MediaController
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -20,17 +16,11 @@ import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.data.db.FavoriteRepository
 import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.data.remote.model.RockDto
-import com.enigma.georocks.ui.MainActivity
 import com.enigma.georocks.databinding.ActivityRockDetailBinding
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.enigma.georocks.ui.MainActivity
 import kotlinx.coroutines.launch
 
-class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
+class RockDetailActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRockDetailBinding
     private lateinit var repository: RockRepository
@@ -39,14 +29,12 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         (application as GeoRocksApp).favoriteRepository
     }
 
-    private var googleMap: GoogleMap? = null
-
     private var currentRockId: String? = null
     private var currentRockTitle: String? = null
     private var currentRockThumbnail: String? = null
 
-    private var rockLatitude: Double? = null
-    private var rockLongitude: Double? = null
+    private var isFavorite: Boolean = false
+    private var favoriteMenuItem: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,15 +56,14 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         currentRockId = incomingRockId
 
-        val mapFragment =
-            supportFragmentManager.findFragmentById(R.id.map_fragment) as? SupportMapFragment
-        mapFragment?.getMapAsync(this)
-
         // Fetch rock details asynchronously
         lifecycleScope.launch {
             try {
+                isFavorite = favoriteRepo.isRockFavorited(incomingRockId)
+                invalidateOptionsMenu()
+
                 val rockDetail: RockDetailDto = repository.getRockDetail(incomingRockId)
-                updateUIWithDetails(incomingRockId, rockDetail)
+                updateUIWithDetails(rockDetail)
             } catch (e: Exception) {
                 Log.e("RockDetailActivity", "Failed to load details", e)
                 Toast.makeText(
@@ -90,6 +77,12 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_rock_detail, menu)
+        
+        // Hide the directions/route action because there is no coordinates in local backend
+        menu?.findItem(R.id.action_route)?.isVisible = false
+        
+        favoriteMenuItem = menu?.findItem(R.id.action_favorite_rock)
+        updateFavoriteIcon(isFavorite)
         return true
     }
 
@@ -99,16 +92,11 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 performLogout()
                 true
             }
-            R.id.action_route -> {
-                openRouteInGoogleMaps()
-                true
-            }
             R.id.action_favorite_rock -> {
                 toggleFavorite()
                 true
             }
-            R.id.action_view_favorites -> { // Handle the "View Favorites" option
-                // Start MainActivity with a flag to show FavoriteRocksFragment
+            R.id.action_view_favorites -> {
                 val intent = Intent(this, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     putExtra("SHOW_FAVORITES", true)
@@ -124,28 +112,19 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-
     private fun toggleFavorite() {
-        val rockId = currentRockId
-        if (rockId.isNullOrEmpty()) {
-            Toast.makeText(this, "No valid rock ID to toggle favorite.", Toast.LENGTH_SHORT).show()
-            Log.e(
-                "RockDetailActivity",
-                "toggleFavorite() called but currentRockId is null or empty."
-            )
-            return
-        }
+        val rockId = currentRockId ?: return
         lifecycleScope.launch {
-            val isAlreadyFavorited = favoriteRepo.isRockFavorited(rockId)
-            if (!isAlreadyFavorited) {
+            if (!isFavorite) {
                 val rockDto = RockDto(
                     id = rockId,
                     thumbnail = currentRockThumbnail,
                     title = currentRockTitle ?: ""
                 )
                 favoriteRepo.addToFavorites(rockDto)
-                Toast.makeText(this@RockDetailActivity, "Added to favorites.", Toast.LENGTH_SHORT)
-                    .show()
+                isFavorite = true
+                updateFavoriteIcon(isFavorite)
+                Toast.makeText(this@RockDetailActivity, "Added to favorites.", Toast.LENGTH_SHORT).show()
             } else {
                 val rockDto = RockDto(
                     id = rockId,
@@ -153,11 +132,19 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
                     title = currentRockTitle ?: ""
                 )
                 favoriteRepo.removeFromFavorites(rockDto)
-                Toast.makeText(
-                    this@RockDetailActivity,
-                    "Removed from favorites.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                isFavorite = false
+                updateFavoriteIcon(isFavorite)
+                Toast.makeText(this@RockDetailActivity, "Removed from favorites.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateFavoriteIcon(favorited: Boolean) {
+        favoriteMenuItem?.let { item ->
+            if (favorited) {
+                item.setIcon(R.drawable.ic_favorite_filled)
+            } else {
+                item.setIcon(R.drawable.ic_favorite_border)
             }
         }
     }
@@ -169,155 +156,19 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         finish()
     }
 
-    // This function is used after the coroutine call completes.
-    private fun updateUIWithDetails(rockId: String, rockDetail: RockDetailDto) {
+    private fun updateUIWithDetails(rockDetail: RockDetailDto) {
         currentRockTitle = rockDetail.title
         currentRockThumbnail = rockDetail.image
 
         binding.tvRockTitle.text = rockDetail.title ?: getString(R.string.unknown_title)
-        binding.tvRockDescription.text =
-            rockDetail.longDesc ?: getString(R.string.no_description_available)
+        binding.tvRockDescription.text = rockDetail.longDesc ?: getString(R.string.no_description_available)
         binding.tvRockType.text = rockDetail.aMemberOf ?: getString(R.string.unknown_type)
         binding.tvRockColor.text = rockDetail.color ?: getString(R.string.unknown_color)
-        binding.tvRockHardness.text = getString(
-            R.string.hardness_label,
-            rockDetail.hardness?.toString() ?: getString(R.string.unknown)
-        )
-        binding.tvRockFormula.text = getString(
-            R.string.formula_label,
-            rockDetail.formula ?: getString(R.string.unknown)
-        )
-        binding.tvRockMagnetic.text = getString(
-            R.string.magnetic_label,
-            rockDetail.magnetic?.toString() ?: getString(R.string.unknown)
-        )
-        binding.tvRockHealthRisks.text = getString(
-            R.string.health_risks_label,
-            rockDetail.healthRisks ?: getString(R.string.none)
-        )
-
-        val localitiesList = rockDetail.localities
-        if (!localitiesList.isNullOrEmpty()) {
-            binding.tvRockLocalities.text = getString(
-                R.string.localities_label,
-                localitiesList.joinToString()
-            )
-        } else {
-            binding.tvRockLocalities.text = getString(
-                R.string.localities_label,
-                getString(R.string.unknown)
-            )
-        }
 
         rockDetail.image?.let {
-            Glide.with(this).load(it).into(binding.ivRockImage)
-        }
-
-        val imagesList = rockDetail.images
-        if (!imagesList.isNullOrEmpty()) {
-            val additionalImages = imagesList.joinToString("\n")
-            binding.tvRockAdditionalImages.text = getString(
-                R.string.additional_images_label,
-                additionalImages
-            )
-        } else {
-            binding.tvRockAdditionalImages.text = getString(R.string.no_additional_images)
-        }
-
-        rockDetail.video?.let { videoUrl ->
-            val videoUri = Uri.parse(videoUrl)
-            binding.vvRockVideo.setVideoURI(videoUri)
-            val mediaController = MediaController(this)
-            mediaController.setAnchorView(binding.vvRockVideo)
-            binding.vvRockVideo.setMediaController(mediaController)
-            binding.vvRockVideo.start()
-        }
-
-        rockLatitude = rockDetail.latitude
-        rockLongitude = rockDetail.longitude
-        googleMap?.let { updateMapMarker(it) }
-
-        val phys = rockDetail.physicalProperties
-        if (phys != null) {
-            val crystalSystem = phys.ppCrystalSystem ?: getString(R.string.unknown)
-            val luster = phys.ppLuster ?: getString(R.string.unknown)
-            val streak = phys.ppStreak ?: getString(R.string.unknown)
-            val tenacity = phys.ppTenacity ?: getString(R.string.unknown)
-            val cleavage = phys.ppCleavage ?: getString(R.string.unknown)
-            val fracture = phys.ppFracture ?: getString(R.string.unknown)
-            val density = phys.ppDensity ?: getString(R.string.unknown)
-
-            binding.tvRockPhysicalProperties.text = """
-                Crystal System: $crystalSystem
-                Luster: $luster
-                Streak: $streak
-                Tenacity: $tenacity
-                Cleavage: $cleavage
-                Fracture: $fracture
-                Density: $density
-            """.trimIndent()
-        } else {
-            binding.tvRockPhysicalProperties.text = getString(R.string.no_physical_properties)
-        }
-
-        val chem = rockDetail.chemicalProperties
-        if (chem != null) {
-            val classification = chem.cpChemicalClassification ?: getString(R.string.unknown)
-            val formula = chem.cpFormula ?: getString(R.string.unknown)
-            val impuritiesList = chem.cpCommonImpurities
-            val commonImpurities = if (!impuritiesList.isNullOrEmpty()) {
-                impuritiesList.joinToString()
-            } else {
-                getString(R.string.unknown)
-            }
-            binding.tvRockChemicalProperties.text = """
-                Classification: $classification
-                Formula: $formula
-                Common Impurities: $commonImpurities
-            """.trimIndent()
-        } else {
-            binding.tvRockChemicalProperties.text = getString(R.string.no_chemical_properties)
-        }
-
-        val faqsList = rockDetail.frequentlyAskedQuestions
-        if (!faqsList.isNullOrEmpty()) {
-            val faqsBulleted = faqsList.joinToString(separator = "\n• ", prefix = "• ")
-            binding.tvRockFaqs.text = faqsBulleted
-        } else {
-            binding.tvRockFaqs.text = getString(R.string.no_faqs)
-        }
-    }
-
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-        updateMapMarker(map)
-    }
-
-    private fun updateMapMarker(map: GoogleMap) {
-        if (rockLatitude != null && rockLongitude != null) {
-            val location = LatLng(rockLatitude!!, rockLongitude!!)
-            map.addMarker(
-                MarkerOptions().position(location).title(
-                    currentRockTitle ?: getString(R.string.unknown_title)
-                )
-            )
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10f))
-        }
-    }
-
-    private fun openRouteInGoogleMaps() {
-        if (rockLatitude == null || rockLongitude == null) {
-            Toast.makeText(this, R.string.coordinates_missing, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val gmmIntentUri = Uri.parse("google.navigation:q=$rockLatitude,$rockLongitude")
-        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
-            setPackage("com.google.android.apps.maps")
-        }
-        if (mapIntent.resolveActivity(packageManager) != null) {
-            startActivity(mapIntent)
-        } else {
-            Toast.makeText(this, R.string.google_maps_not_installed, Toast.LENGTH_SHORT).show()
+            Glide.with(this)
+                .load(it)
+                .into(binding.ivRockImage)
         }
     }
 }
