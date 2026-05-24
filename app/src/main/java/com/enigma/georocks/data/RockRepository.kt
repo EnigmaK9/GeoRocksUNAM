@@ -20,14 +20,145 @@ class RockRepository(
     private val favoriteRockDao: FavoriteRockDao
 ) {
 
+    private var malformedUid: String? = null
+
     // Fetch rock details from the API using suspend function
     suspend fun getRockDetail(id: String): RockDetailDto = withContext(Dispatchers.IO) {
-        apiService.getRockDetail(id).toRockDetailDto()
+        if (id == malformedUid) {
+            getCustomRockDetail(21)
+        } else if (id.contains("-22")) {
+            getCustomRockDetail(22)
+        } else if (id.contains("-23")) {
+            getCustomRockDetail(23)
+        } else if (id.contains("-24")) {
+            getCustomRockDetail(24)
+        } else if (id.contains("-21")) {
+            getCustomRockDetail(21)
+        } else {
+            try {
+                val detailDto = apiService.getRockDetail(id)
+                if (detailDto.rockName.contains("\n") || detailDto.rockName.contains("Pitchstone")) {
+                    malformedUid = id
+                    getCustomRockDetail(21)
+                } else {
+                    detailDto.toRockDetailDto()
+                }
+            } catch (e: Exception) {
+                val suffixIndex = id.lastIndexOf("-")
+                if (suffixIndex != -1) {
+                    val suffix = id.substring(suffixIndex + 1)
+                    if (suffix == "22" || suffix == "23" || suffix == "24" || suffix == "21") {
+                        getCustomRockDetail(suffix.toInt())
+                    } else {
+                        throw e
+                    }
+                } else {
+                    throw e
+                }
+            }
+        }
     }
 
     // Fetch list of rocks from the API using suspend function
     suspend fun getRocksApiary(): MutableList<RockDto> = withContext(Dispatchers.IO) {
-        apiService.getRocks().map { it.toRockDto() }.toMutableList()
+        val originalList = apiService.getRocks()
+        val processedList = mutableListOf<RockDto>()
+        for (sample in originalList) {
+            if (sample.rockName.contains("\n") || sample.rockName.contains("Pitchstone")) {
+                malformedUid = sample.uid
+                processedList.addAll(parseMalformedSampleList(sample))
+            } else {
+                processedList.add(sample.toRockDto())
+            }
+        }
+        processedList
+    }
+
+    private fun parseMalformedSampleList(sample: SampleResponseDto): List<RockDto> {
+        malformedUid = sample.uid
+        return listOf(
+            RockDto(
+                id = "${sample.uid}-21",
+                thumbnail = "${Constants.IMAGE_BASE_URL}pitchstone_piedra_pez.jpg",
+                title = "Pitchstone “Piedra pez”"
+            ),
+            RockDto(
+                id = "${sample.uid}-22",
+                thumbnail = "${Constants.IMAGE_BASE_URL}pitchstone_porfirítica.jpg",
+                title = "Pitchstone porfirítica"
+            ),
+            RockDto(
+                id = "${sample.uid}-23",
+                thumbnail = "${Constants.IMAGE_BASE_URL}nordmarquita.jpg",
+                title = "Nordmarquita"
+            ),
+            RockDto(
+                id = "${sample.uid}-24",
+                thumbnail = "${Constants.IMAGE_BASE_URL}larvikita_laurvigita.jpg",
+                title = "Larvikita, laurvigita"
+            )
+        )
+    }
+
+    private fun getCustomRockDetail(index: Int): RockDetailDto {
+        val title: String
+        val imgName: String
+        val locName: String
+        val country: String
+
+        when (index) {
+            22 -> {
+                title = "Pitchstone porfirítica"
+                imgName = "pitchstone_porfirítica.jpg"
+                locName = "Ardnamurchan"
+                country = "Oeste de Escocia"
+            }
+            23 -> {
+                title = "Nordmarquita"
+                imgName = "nordmarquita.jpg"
+                locName = "Sutherlandshire"
+                country = "Escocia"
+            }
+            24 -> {
+                title = "Larvikita, laurvigita"
+                imgName = "larvikita_laurvigita.jpg"
+                locName = "Larvik"
+                country = "Noruega"
+            }
+            else -> { // 21
+                title = "Pitchstone “Piedra pez”"
+                imgName = "pitchstone_piedra_pez.jpg"
+                locName = "Isla de Eigg"
+                country = "Escocia"
+            }
+        }
+
+        val imageUrl = "${Constants.IMAGE_BASE_URL}$imgName"
+        val state = "Corte: No | Lámina: No"
+        val location = "Localidad: $locName, $country"
+        val generatedDesc = "Muestra geológica catalogada de tipo **$title**, descubierta y recolectada en la localidad de **$locName**, ubicada en **$country**.\n\n" +
+                "**Detalles del Espécimen:**\n" +
+                "• **Corte de Exhibición:** Muestra en su estado natural.\n" +
+                "• **Estudio en Lámina Delgada:** No disponible para análisis microscópico."
+
+        return RockDetailDto(
+            title = title,
+            image = imageUrl,
+            video = null,
+            longDesc = generatedDesc,
+            aMemberOf = state,
+            alsoKnownAs = emptyList(),
+            formula = null,
+            hardness = null,
+            color = location,
+            magnetic = null,
+            healthRisks = null,
+            latitude = null,
+            longitude = null,
+            images = listOf(imageUrl),
+            localities = listOf(locName),
+            frequentlyAskedQuestions = emptyList()
+        )
     }
 
     // Authenticate with FastAPI backend
