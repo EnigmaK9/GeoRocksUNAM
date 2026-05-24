@@ -4,37 +4,40 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#141A31"
+    android:background="#FFFFFF"
     tools:context=".ui.fragments.RockDetailFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="#FFFFFF">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="#FFFFFF">
 
             <ScrollView
                 android:id="@+id/scrollView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:background="#FFFFFF">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:background="#FFFFFF">
 
-                    <!-- Horizontal container for heart and title -->
+                    <!-- Horizontal container for title and hidden duplicate heart -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingBottom="10dp"
-                        android:paddingTop="16dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp">
+                        android:layout_marginBottom="16dp"
+                        android:background="#FFFFFF">
 
                         <TextView
                             android:id="@+id/tvTitle"
@@ -42,15 +45,17 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="@font/ubuntu_bold"
-                            android:textColor="@color/white"
-                            android:textSize="25sp"
+                            android:textColor="#1A202C"
+                            android:textSize="26sp"
                             tools:text="Rock Title" />
 
+                        <!-- Hidden duplicate favorite icon to prevent double hearts -->
                         <ImageView
                             android:id="@+id/ivFavorite"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="8dp"
+                            android:visibility="gone"
                             android:src="@drawable/ic_favorite_border"
                             android:contentDescription="@string/favorite"
                             android:clickable="true"
@@ -59,59 +64,84 @@
 
                     </LinearLayout>
 
-                    <com.makeramen.roundedimageview.RoundedImageView
-                        android:id="@+id/ivImage"
+                    <!-- Specimen Image inside flat card -->
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:layout_marginStart="20dp"
-                        android:layout_marginEnd="20dp"
-                        android:layout_marginBottom="16dp"
-                        app:riv_corner_radius="10dp"
-                        android:scaleType="centerCrop"
-                        tools:src="@mipmap/ic_launcher" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="#E2E8F0"
+                        app:cardBackgroundColor="#FFFFFF">
 
+                        <com.makeramen.roundedimageview.RoundedImageView
+                            android:id="@+id/ivImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="220dp"
+                            app:riv_corner_radius="16dp"
+                            android:scaleType="centerCrop"
+                            tools:src="@mipmap/ic_launcher" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Properties block -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:layout_marginBottom="24dp"
+                        android:background="#F8FAFC"
+                        android:backgroundTint="#F8FAFC">
+
+                        <TextView
+                            android:id="@+id/tvType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/ubuntu_bold"
+                            android:textColor="#4A5568"
+                            android:textSize="15sp"
+                            android:layout_marginBottom="6dp"
+                            tools:text="Type: Igneous" />
+
+                        <TextView
+                            android:id="@+id/tvColor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/ubuntu"
+                            android:textColor="#4A5568"
+                            android:textSize="15sp"
+                            tools:text="Color: Light Gray" />
+                    </LinearLayout>
+
+                    <!-- Section Label for Description -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/ubuntu_bold"
+                        android:textColor="#7B7D7D"
+                        android:text="DESCRIPCIÓN"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Legible Charcoal description -->
                     <TextView
                         android:id="@+id/tvLongDesc"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/ubuntu"
-                        android:paddingStart="15dp"
-                        android:paddingTop="15dp"
-                        android:paddingEnd="15dp"
-                        android:paddingBottom="10dp"
-                        android:textColor="@color/white"
-                        android:textSize="20sp"
+                        android:textColor="#2D3748"
+                        android:textSize="16sp"
+                        android:lineSpacingExtra="6dp"
                         tools:text="Rock Description" />
 
-                    <TextView
-                        android:id="@+id/tvType"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/ubuntu"
-                        android:paddingStart="15dp"
-                        android:paddingTop="15dp"
-                        android:textColor="@color/white"
-                        android:textSize="18sp"
-                        tools:text="Type: Igneous" />
-
-                    <TextView
-                        android:id="@+id/tvColor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/ubuntu"
-                        android:paddingStart="15dp"
-                        android:paddingTop="15dp"
-                        android:textColor="@color/white"
-                        android:textSize="18sp"
-                        tools:text="Color: Light Gray" />
-
+                    <!-- Video View container if present -->
                     <VideoView
                         android:id="@+id/vvRockVideo"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginStart="15dp"
-                        android:layout_marginEnd="15dp" />
+                        android:layout_marginTop="24dp" />
 
                 </LinearLayout>
 

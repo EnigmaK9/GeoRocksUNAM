@@ -26,11 +26,10 @@
         app:showAsAction="always"
         android:icon="@drawable/ic_logout" />
 
-    <!-- New menu option: View Favorites -->
+    <!-- New menu option: View Favorites in overflow menu -->
     <item
         android:id="@+id/action_view_favorites"
         android:title="@string/view_favorites"
         android:orderInCategory="103"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_favorite_filled" />
+        app:showAsAction="never" />
 </menu>
