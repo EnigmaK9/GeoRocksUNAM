@@ -5,8 +5,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
     id("kotlin-kapt") // The kapt plugin is applied here
-    id("com.google.dagger.hilt.android") version "2.51.1" apply false
 }
 
 android {
@@ -83,8 +84,7 @@ dependencies {
 
     // Room database dependencies
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler) // Annotation processing with kapt for Room
-    kapt("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
+    ksp(libs.androidx.room.compiler) // Switched to KSP
     implementation(libs.androidx.room.ktx)
 
     // Lifecycle-aware components
@@ -105,4 +105,14 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core.v351)
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "com.squareup" && requested.name == "javapoet") {
+                useVersion("1.13.0")
+            }
+        }
+    }
 }

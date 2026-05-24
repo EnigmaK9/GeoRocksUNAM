@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 
 
+@HiltAndroidApp
 class GeoRocksApp : Application() {
 
     lateinit var repository: RockRepository
