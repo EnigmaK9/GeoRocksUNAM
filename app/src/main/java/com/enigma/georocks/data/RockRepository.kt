@@ -77,11 +77,20 @@ class RockRepository(
         val state = "Corte: ${if (cut) "Sí" else "No"} | Lámina: ${if (thinSection) "Sí" else "No"}"
         val location = "Localidad: $locationName, $locationCountry"
 
+        val generatedDesc = if (!rockDescription.isNullOrBlank()) {
+            rockDescription
+        } else {
+            "Muestra geológica catalogada de tipo **$rockName**, descubierta y recolectada en la localidad de **$locationName**, ubicada en **$locationCountry**.\n\n" +
+            "**Detalles del Espécimen:**\n" +
+            "• **Corte de Exhibición:** ${if (cut) "Sí, preparado para visualización macroscópica de texturas." else "Muestra en su estado natural."}\n" +
+            "• **Estudio en Lámina Delgada:** ${if (thinSection) "Sí, cuenta con lámina delgada preparada para análisis petrológico bajo microscopio polarizado." else "No disponible para análisis microscópico."}"
+        }
+
         return RockDetailDto(
             title = rockName,
             image = imageUrl,
             video = null,
-            longDesc = if (rockDescription.isNullOrBlank()) "No description available." else rockDescription,
+            longDesc = generatedDesc,
             aMemberOf = state,
             alsoKnownAs = emptyList(),
             formula = null,

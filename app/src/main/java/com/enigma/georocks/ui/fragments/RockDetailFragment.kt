@@ -60,8 +60,14 @@ class RockDetailFragment : Fragment() {
                     withContext(Dispatchers.Main) {
                         binding.tvTitle.text = rockDetail.title
                         binding.tvLongDesc.text = rockDetail.longDesc
-                        binding.tvType.text = "Type: ${rockDetail.aMemberOf}"
-                        binding.tvColor.text = "Color: ${rockDetail.color}"
+                        binding.tvType.text = rockDetail.aMemberOf
+                        binding.tvColor.text = rockDetail.color
+
+                        rockDetail.image?.let { imgUrl ->
+                            com.bumptech.glide.Glide.with(requireContext())
+                                .load(imgUrl)
+                                .into(binding.ivImage)
+                        }
 
                         if (!rockDetail.video.isNullOrEmpty()) {
                             val videoUri = Uri.parse(rockDetail.video)

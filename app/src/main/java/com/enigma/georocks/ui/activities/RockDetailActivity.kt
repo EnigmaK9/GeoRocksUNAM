@@ -177,14 +177,8 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.tvRockTitle.text = rockDetail.title ?: getString(R.string.unknown_title)
         binding.tvRockDescription.text =
             rockDetail.longDesc ?: getString(R.string.no_description_available)
-        binding.tvRockType.text = getString(
-            R.string.type_label,
-            rockDetail.aMemberOf ?: getString(R.string.unknown_type)
-        )
-        binding.tvRockColor.text = getString(
-            R.string.color_label,
-            rockDetail.color ?: getString(R.string.unknown_color)
-        )
+        binding.tvRockType.text = rockDetail.aMemberOf ?: getString(R.string.unknown_type)
+        binding.tvRockColor.text = rockDetail.color ?: getString(R.string.unknown_color)
         binding.tvRockHardness.text = getString(
             R.string.hardness_label,
             rockDetail.hardness?.toString() ?: getString(R.string.unknown)
