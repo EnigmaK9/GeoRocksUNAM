@@ -1,5 +1,3 @@
-// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/RegisterActivity.kt
-
 package com.enigma.georocks.ui.activities
 
 import android.content.Intent
@@ -9,21 +7,21 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.enigma.georocks.R
+import com.enigma.georocks.application.GeoRocksApp
+import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.databinding.ActivityRegisterBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 class RegisterActivity : AppCompatActivity() {
 
     // Instance of View Binding
     private lateinit var binding: ActivityRegisterBinding
 
-    // Instance of FirebaseAuth
-    private lateinit var auth: FirebaseAuth
+    // Instance of RockRepository
+    private lateinit var repository: RockRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,8 +34,8 @@ class RegisterActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbarRegister)
         supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back button
 
-        // Initialize FirebaseAuth
-        auth = FirebaseAuth.getInstance()
+        // Initialize Repository
+        repository = (application as GeoRocksApp).repository
 
         // Handle the click on the register button
         binding.btnRegister.setOnClickListener {
@@ -90,78 +88,53 @@ class RegisterActivity : AppCompatActivity() {
     }
 
 
-    // Function to register the user in Firebase
+    // Function to register the user in FastAPI Backend
     private fun registerUser(email: String, password: String) {
         // Show ProgressBar and disable the register button
         binding.progressBarRegister.visibility = View.VISIBLE
         binding.btnRegister.isEnabled = false
 
-        // Create user with email and password
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                // Hide ProgressBar and enable the register button
+        val username = email.substringBefore("@")
+        val firstName = "Geo"
+        val lastName = "User"
+
+        lifecycleScope.launch {
+            try {
+                repository.signup(username, email, password, firstName, lastName)
+
+                // Registration successful
                 binding.progressBarRegister.visibility = View.GONE
                 binding.btnRegister.isEnabled = true
 
-                if (task.isSuccessful) {
-                    // Registration successful
-                    Snackbar.make(
-                        binding.registerCoordinatorLayout,
-                        getString(R.string.registration_success),
-                        Snackbar.LENGTH_LONG
-                    )
-                        .setBackgroundTint(ContextCompat.getColor(this, R.color.success_color))
-                        .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
-                        .show()
-                    finish()
-                } else {
-                    // Registration failed with specific error handling
-                    try {
-                        throw task.exception!!
-                    } catch (e: FirebaseAuthUserCollisionException) {
-                        // Email already registered
-                        Snackbar.make(
-                            binding.registerCoordinatorLayout,
-                            getString(R.string.email_already_registered),
-                            Snackbar.LENGTH_LONG
-                        )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
-                            .show()
-                    } catch (e: FirebaseAuthWeakPasswordException) {
-                        // Weak password
-                        Snackbar.make(
-                            binding.registerCoordinatorLayout,
-                            getString(R.string.password_too_weak),
-                            Snackbar.LENGTH_LONG
-                        )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
-                            .show()
-                    } catch (e: FirebaseAuthInvalidCredentialsException) {
-                        // Invalid email address
-                        Snackbar.make(
-                            binding.registerCoordinatorLayout,
-                            getString(R.string.invalid_email_address),
-                            Snackbar.LENGTH_LONG
-                        )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
-                            .show()
-                    } catch (e: Exception) {
-                        // Other errors
-                        Snackbar.make(
-                            binding.registerCoordinatorLayout,
-                            getString(R.string.registration_failure) + ": ${e.message}",
-                            Snackbar.LENGTH_LONG
-                        )
-                            .setBackgroundTint(ContextCompat.getColor(this, R.color.error_color))
-                            .setTextColor(ContextCompat.getColor(this, R.color.snackbar_text_color))
-                            .show()
-                    }
-                }
+                Snackbar.make(
+                    binding.registerCoordinatorLayout,
+                    getString(R.string.registration_success),
+                    Snackbar.LENGTH_LONG
+                )
+                    .setBackgroundTint(ContextCompat.getColor(this@RegisterActivity, R.color.success_color))
+                    .setTextColor(ContextCompat.getColor(this@RegisterActivity, R.color.snackbar_text_color))
+                    .show()
 
+                // Small delay to allow the snackbar to be read before finishing
+                binding.root.postDelayed({
+                    finish()
+                }, 1500)
+
+            } catch (e: Exception) {
+                // Registration failed
+                binding.progressBarRegister.visibility = View.GONE
+                binding.btnRegister.isEnabled = true
+
+                Snackbar.make(
+                    binding.registerCoordinatorLayout,
+                    getString(R.string.registration_failure) + ": ${e.localizedMessage ?: "Unknown error"}",
+                    Snackbar.LENGTH_LONG
+                )
+                    .setBackgroundTint(ContextCompat.getColor(this@RegisterActivity, R.color.error_color))
+                    .setTextColor(ContextCompat.getColor(this@RegisterActivity, R.color.snackbar_text_color))
+                    .show()
             }
+        }
     }
 
     // Function to validate the email format

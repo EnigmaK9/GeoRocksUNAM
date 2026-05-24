@@ -28,14 +28,12 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var binding: ActivityRockDetailBinding
     private lateinit var repository: RockRepository
-    private lateinit var auth: FirebaseAuth
 
     private val favoriteRepo: FavoriteRepository by lazy {
         (application as GeoRocksApp).favoriteRepository
@@ -55,7 +53,6 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityRockDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
         val toolbar: Toolbar = findViewById(R.id.toolbarRockDetail)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -166,7 +163,7 @@ class RockDetailActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun performLogout() {
-        auth.signOut()
+        com.enigma.georocks.utils.SessionManager(this).clearSession()
         Toast.makeText(this, R.string.logged_out_successfully, Toast.LENGTH_SHORT).show()
         startActivity(Intent(this, LoginActivity::class.java))
         finish()

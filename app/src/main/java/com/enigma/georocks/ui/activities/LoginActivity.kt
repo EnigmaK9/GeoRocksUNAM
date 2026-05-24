@@ -1,5 +1,3 @@
-// File path: /home/enigma/github/kotlin/georocksunam/app/src/main/java/com/enigma/georocks/ui/activities/LoginActivity.kt
-
 package com.enigma.georocks.ui.activities
 
 import android.content.Intent
@@ -7,18 +5,19 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.enigma.georocks.application.GeoRocksApp
+import com.enigma.georocks.data.RockRepository
 import com.enigma.georocks.databinding.ActivityLoginBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.enigma.georocks.ui.MainActivity
+import com.enigma.georocks.utils.SessionManager
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
-    // ViewBinding and FirebaseAuth
+    // ViewBinding and Session/Repository
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
+    private lateinit var repository: RockRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,8 +26,8 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize FirebaseAuth
-        auth = FirebaseAuth.getInstance()
+        // Initialize Repository
+        repository = (application as GeoRocksApp).repository
 
         // Set up click listeners
         setupListeners()
@@ -40,13 +39,13 @@ class LoginActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Login button
         binding.btnLogin.setOnClickListener {
-            val email = binding.etEmail.text.toString().trim()
+            val username = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString()
 
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                login(email, password)
+            if (username.isNotEmpty() && password.isNotEmpty()) {
+                login(username, password)
             } else {
-                showToast("Please enter email and password")
+                showToast("Please enter username and password")
             }
         }
 
@@ -67,35 +66,23 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Logs in the user using Firebase Authentication
-     * @param email User's email address
+     * Logs in the user using FastAPI Authentication
+     * @param username User's username
      * @param password User's password
      */
-    private fun login(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Login successful
-                    navigateToMainActivity()
-                } else {
-                    // Login failed
-                    handleLoginError(task.exception)
-                }
-            }
-    }
+    private fun login(username: String, password: String) {
+        lifecycleScope.launch {
+            try {
+                val tokenResponse = repository.login(username, password)
+                val sessionManager = SessionManager(this@LoginActivity)
+                sessionManager.saveAuthToken(tokenResponse.accessToken)
+                sessionManager.saveUsername(username)
 
-    /**
-     * Handles login errors
-     * @param exception FirebaseAuth exception
-     */
-    private fun handleLoginError(exception: Exception?) {
-        when (exception) {
-            is FirebaseAuthInvalidUserException -> showToast("User not registered")
-            is FirebaseAuthInvalidCredentialsException -> showToast("Invalid credentials")
-            is FirebaseAuthUserCollisionException -> showToast("This user is already registered")
-            else -> {
-                Log.e("LoginActivity", "Authentication error", exception)
-                showToast("Unknown error: ${exception?.message}")
+                showToast("Login successful")
+                navigateToMainActivity()
+            } catch (e: Exception) {
+                Log.e("LoginActivity", "Authentication error", e)
+                showToast("Authentication failed: ${e.localizedMessage ?: "Invalid credentials"}")
             }
         }
     }

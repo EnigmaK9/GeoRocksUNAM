@@ -3,6 +3,7 @@
 package com.enigma.georocks.utils
 
 object Constants {
-    const val BASE_URL = "https://private-516480-rock9tastic.apiary-mock.com/"
+    const val BASE_URL = "http://10.0.2.2:8003/"
+    const val IMAGE_BASE_URL = "http://10.0.2.2:5173/"
     const val LOGTAG = "APPLOGS"
 }

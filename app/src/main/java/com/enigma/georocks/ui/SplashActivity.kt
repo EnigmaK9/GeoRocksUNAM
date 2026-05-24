@@ -7,23 +7,21 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.enigma.georocks.databinding.ActivitySplashBinding
 import com.enigma.georocks.ui.activities.LoginActivity
-import com.google.firebase.auth.FirebaseAuth
+import com.enigma.georocks.utils.SessionManager
 
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashBinding
-    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
+        val sessionManager = SessionManager(this)
 
         binding.root.postDelayed({
-            val currentUser = auth.currentUser
-            if (currentUser != null) {
+            if (sessionManager.isLoggedIn()) {
                 // Authenticated user
                 startActivity(Intent(this, MainActivity::class.java))
             } else {

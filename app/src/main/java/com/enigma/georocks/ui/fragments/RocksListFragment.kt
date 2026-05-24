@@ -21,7 +21,6 @@ import com.enigma.georocks.data.remote.model.RockDto
 import com.enigma.georocks.databinding.FragmentRocksListBinding
 import com.enigma.georocks.ui.activities.LoginActivity
 import com.enigma.georocks.ui.adapters.RocksAdapter
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,9 +34,6 @@ class RocksListFragment : Fragment() {
     // View binding for fragment_rocks_list.xml
     private var _binding: FragmentRocksListBinding? = null
     private val binding get() = _binding!!
-
-    // Firebase Auth instance
-    private lateinit var auth: FirebaseAuth
 
     // Repository for fetching rocks and details
     private lateinit var repository: RockRepository
@@ -64,12 +60,11 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * FirebaseAuth, the RockRepository, and the RecyclerView are set up here.
+     * The RockRepository and the RecyclerView are set up here.
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         repository = (requireActivity().application as GeoRocksApp).repository
-        auth = FirebaseAuth.getInstance()
 
         // A linear LayoutManager is used for the RecyclerView
         binding.rvRocks.layoutManager = LinearLayoutManager(requireContext())
@@ -185,10 +180,10 @@ class RocksListFragment : Fragment() {
     }
 
     /**
-     * The user is logged out from Firebase, and LoginActivity is started.
+     * The user is logged out, and LoginActivity is started.
      */
     private fun performLogout() {
-        auth.signOut()
+        com.enigma.georocks.utils.SessionManager(requireContext()).clearSession()
         Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
         val intent = Intent(requireContext(), LoginActivity::class.java)
         startActivity(intent)

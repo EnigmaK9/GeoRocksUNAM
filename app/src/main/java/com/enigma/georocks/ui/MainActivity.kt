@@ -15,7 +15,6 @@ import com.enigma.georocks.databinding.ActivityMainBinding
 import com.enigma.georocks.ui.activities.LoginActivity
 import com.enigma.georocks.ui.fragments.FavoriteRocksFragment
 import com.enigma.georocks.ui.fragments.RocksListFragment
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -60,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                FirebaseAuth.getInstance().signOut()
+                com.enigma.georocks.utils.SessionManager(this).clearSession()
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
                 true

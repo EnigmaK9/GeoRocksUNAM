@@ -24,7 +24,7 @@ object AppModule {
     // Provide Retrofit instance
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit = RetrofitHelper().getRetrofit()
+    fun provideRetrofit(@ApplicationContext context: Context): Retrofit = RetrofitHelper(context).getRetrofit()
 
     // Provide RockApiService instance
     @Provides

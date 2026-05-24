@@ -4,5 +4,7 @@
         <domain includeSubdomains="true">example.com</domain>
         <domain includeSubdomains="true">example2.com</domain>
         <domain includeSubdomains="true">example3.com</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>
 </network-security-config>

@@ -32,7 +32,7 @@ class GeoRocksApp : Application() {
         super.onCreate()
 
         // Retrofit initialization
-        val retrofit: Retrofit = RetrofitHelper().getRetrofit()
+        val retrofit: Retrofit = RetrofitHelper(this).getRetrofit()
         val apiService = retrofit.create(RockApiService::class.java)
 
         // Room database initialization
