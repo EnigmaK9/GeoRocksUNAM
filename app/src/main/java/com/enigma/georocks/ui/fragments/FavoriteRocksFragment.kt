@@ -74,6 +74,11 @@ class FavoriteRocksFragment : Fragment() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.fetchFavoriteRocks()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

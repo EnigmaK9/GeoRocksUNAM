@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_rocks"
+        android:icon="@drawable/ic_search"
+        android:title="Rocas" />
+
+    <item
+        android:id="@+id/navigation_launcher"
+        android:icon="@drawable/ic_info"
+        android:title="Lanzador" />
+
+    <item
+        android:id="@+id/navigation_graphs"
+        android:icon="@drawable/ic_star"
+        android:title="Gráficos" />
+
+    <item
+        android:id="@+id/navigation_favorites"
+        android:icon="@drawable/ic_favorite_filled"
+        android:title="Favoritas" />
+
+</menu>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="24dp">
+
+    <!-- Header Dashboard Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lanzador de Funciones"
+        android:textSize="26sp"
+        android:fontFamily="@font/ubuntu_bold"
+        android:textColor="#1A202C"
+        android:layout_marginBottom="6dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Accede rápidamente a las utilidades geológicas de GeoRocks."
+        android:textSize="15sp"
+        android:fontFamily="@font/ubuntu"
+        android:textColor="#7B7D7D"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Feature 1: Search Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSearchLauncher"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="#E2E8F0"
+        app:cardBackgroundColor="#F8FAFC"
+        android:foreground="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_search"
+                app:tint="#1A202C"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Búsqueda Inteligente"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/ubuntu_bold"
+                    android:textColor="#1A202C" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filtra y busca especímenes por nombre."
+                    android:textSize="13sp"
+                    android:fontFamily="@font/ubuntu"
+                    android:textColor="#4A5568" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Feature 2: Maps Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardMapsLauncher"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="#E2E8F0"
+        app:cardBackgroundColor="#F8FAFC"
+        android:foreground="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_directions"
+                app:tint="#1A202C"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mapa de Yacimientos"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/ubuntu_bold"
+                    android:textColor="#1A202C" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Explora la geolocalización de las muestras."
+                    android:textSize="13sp"
+                    android:fontFamily="@font/ubuntu"
+                    android:textColor="#4A5568" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Feature 3: Backend Diagnostic Info Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardInfoLauncher"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="#E2E8F0"
+        app:cardBackgroundColor="#F8FAFC"
+        android:foreground="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="20dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_info"
+                app:tint="#1A202C"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Información del Sistema"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/ubuntu_bold"
+                    android:textColor="#1A202C" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Verifica el estado del backend de FastAPI."
+                    android:textSize="13sp"
+                    android:fontFamily="@font/ubuntu"
+                    android:textColor="#4A5568" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Add New Specimen Rock Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAddNewRock"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:text="Añadir Nueva Roca"
+        android:textSize="16sp"
+        android:fontFamily="@font/ubuntu_bold"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#1A202C"
+        app:cornerRadius="16dp" />
+
+</LinearLayout>

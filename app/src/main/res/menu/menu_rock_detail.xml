@@ -10,11 +10,27 @@
         app:showAsAction="always"
         android:icon="@drawable/ic_favorite_border" />
 
+    <!-- Option to edit the rock -->
+    <item
+        android:id="@+id/action_edit_rock"
+        android:title="Editar"
+        android:orderInCategory="101"
+        app:showAsAction="always"
+        android:icon="@android:drawable/ic_menu_edit" />
+
+    <!-- Option to delete the rock -->
+    <item
+        android:id="@+id/action_delete_rock"
+        android:title="Eliminar"
+        android:orderInCategory="102"
+        app:showAsAction="always"
+        android:icon="@android:drawable/ic_menu_delete" />
+
     <!-- Option to show the route to the rock -->
     <item
         android:id="@+id/action_route"
         android:title="@string/route_to_rock"
-        android:orderInCategory="101"
+        android:orderInCategory="103"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_directions" />
 
@@ -22,14 +38,13 @@
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
-        android:orderInCategory="102"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_logout" />
+        android:orderInCategory="104"
+        app:showAsAction="never" />
 
     <!-- New menu option: View Favorites in overflow menu -->
     <item
         android:id="@+id/action_view_favorites"
         android:title="@string/view_favorites"
-        android:orderInCategory="103"
+        android:orderInCategory="105"
         app:showAsAction="never" />
 </menu>

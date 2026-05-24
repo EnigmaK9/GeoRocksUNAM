@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- AppBar with flat white Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarAddRock"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#FFFFFF"
+            android:title="Añadir Nueva Muestra"
+            app:titleTextColor="#1A202C"
+            app:navigationIconTint="#1A202C" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Form container -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="#FFFFFF"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="#FFFFFF">
+
+            <!-- Rock Name TextInputLayout -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Nombre de la Roca"
+                app:boxStrokeColor="#1A202C"
+                app:hintTextColor="#1A202C"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRockName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/ubuntu"
+                    android:inputType="textCapWords"
+                    android:textColor="#1A202C" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Location Name TextInputLayout -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Localidad"
+                app:boxStrokeColor="#1A202C"
+                app:hintTextColor="#1A202C"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etLocationName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/ubuntu"
+                    android:inputType="textCapWords"
+                    android:textColor="#1A202C" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Location Country TextInputLayout -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="País"
+                app:boxStrokeColor="#1A202C"
+                app:hintTextColor="#1A202C"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etLocationCountry"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/ubuntu"
+                    android:inputType="textCapWords"
+                    android:textColor="#1A202C" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Image File/URL TextInputLayout -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="Nombre de Imagen (ej: foyaita.jpg)"
+                app:boxStrokeColor="#1A202C"
+                app:hintTextColor="#1A202C"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPicture"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/ubuntu"
+                    android:inputType="text"
+                    android:text="Sin muestra"
+                    android:textColor="#1A202C" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Description TextInputLayout -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:hint="Descripción"
+                app:boxStrokeColor="#1A202C"
+                app:hintTextColor="#1A202C"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:fontFamily="@font/ubuntu"
+                    android:inputType="textMultiLine"
+                    android:gravity="top"
+                    android:textColor="#1A202C" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Cut Switch -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchCut"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="Corte de Exhibición Disponible"
+                android:fontFamily="@font/ubuntu_bold"
+                android:textColor="#4A5568"
+                android:textSize="15sp" />
+
+            <!-- Thin Section Switch -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchThinSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:text="Estudio en Lámina Delgada Disponible"
+                android:fontFamily="@font/ubuntu_bold"
+                android:textColor="#4A5568"
+                android:textSize="15sp" />
+
+            <!-- Save Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveRock"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Guardar Especímen"
+                android:textSize="16sp"
+                android:fontFamily="@font/ubuntu_bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#1A202C"
+                app:cornerRadius="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -29,7 +29,7 @@ class FavoriteRocksViewModel @Inject constructor(
         fetchFavoriteRocks()
     }
 
-    private fun fetchFavoriteRocks() {
+    fun fetchFavoriteRocks() {
         viewModelScope.launch {
             try {
                 val favoriteEntities: List<FavoriteRockEntity> = favoriteRepository.getAllFavorites()

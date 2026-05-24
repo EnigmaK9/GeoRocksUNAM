@@ -60,6 +60,10 @@
 
         <activity
             android:name=".ui.activities.RegisterActivity" />
+
+        <activity
+            android:name=".ui.activities.AddRockActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

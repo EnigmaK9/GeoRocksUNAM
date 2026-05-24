@@ -7,6 +7,7 @@ import com.enigma.georocks.data.db.FavoriteRockEntity
 import com.enigma.georocks.data.remote.api.RockApiService
 import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.data.remote.model.SampleCreateRequestDto
 import com.enigma.georocks.data.remote.model.SampleResponseDto
 import com.enigma.georocks.data.remote.model.TokenResponseDto
 import com.enigma.georocks.data.remote.model.UserCreateRequestDto
@@ -266,4 +267,52 @@ class RockRepository(
     suspend fun getAllFavoriteRocks(): List<FavoriteRockEntity> = withContext(Dispatchers.IO) {
         favoriteRockDao.getAllFavorites()
     }
+
+    // Create a new sample specimen on the FastAPI backend
+    suspend fun createSample(request: SampleCreateRequestDto): RockDetailDto = withContext(Dispatchers.IO) {
+        apiService.createSample(request).toRockDetailDto()
+    }
+
+    // Update an existing sample specimen on the FastAPI backend
+    suspend fun updateSample(id: String, request: SampleCreateRequestDto): RockDetailDto = withContext(Dispatchers.IO) {
+        val baseId = getBaseId(id)
+        apiService.updateSample(baseId, request).toRockDetailDto()
+    }
+
+    // Delete a sample specimen on the FastAPI backend
+    suspend fun deleteSample(id: String): Boolean = withContext(Dispatchers.IO) {
+        val baseId = getBaseId(id)
+        val response = apiService.deleteSample(baseId)
+        response.isSuccessful
+    }
+
+    // Retrieve specimen statistics (total, cut percentage, thin section percentage)
+    suspend fun getSpecimenStats(): Triple<Int, Int, Int> = withContext(Dispatchers.IO) {
+        try {
+            val samples = apiService.getRocks()
+            val total = samples.size
+            if (total == 0) return@withContext Triple(0, 0, 0)
+            val cutCount = samples.count { it.cut }
+            val thinCount = samples.count { it.thinSection }
+            val cutPercentage = (cutCount * 100) / total
+            val thinPercentage = (thinCount * 100) / total
+            Triple(total, cutPercentage, thinPercentage)
+        } catch (e: Exception) {
+            Triple(0, 0, 0)
+        }
+    }
+
+    // Helper function to extract base ID for client-side parsed malformed split IDs
+    private fun getBaseId(id: String): String {
+        val suffixIndex = id.lastIndexOf("-")
+        if (suffixIndex != -1) {
+            val suffix = id.substring(suffixIndex + 1)
+            if (suffix == "21" || suffix == "22" || suffix == "23" || suffix == "24") {
+                return id.substring(0, suffixIndex)
+            }
+        }
+        return id
+    }
 }
+
+

@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
@@ -55,14 +56,21 @@ class RockDetailActivity : AppCompatActivity() {
             return
         }
         currentRockId = incomingRockId
+    }
 
-        // Fetch rock details asynchronously
+    override fun onResume() {
+        super.onResume()
+        loadRockDetails()
+    }
+
+    private fun loadRockDetails() {
+        val rockId = currentRockId ?: return
         lifecycleScope.launch {
             try {
-                isFavorite = favoriteRepo.isRockFavorited(incomingRockId)
+                isFavorite = favoriteRepo.isRockFavorited(rockId)
                 invalidateOptionsMenu()
 
-                val rockDetail: RockDetailDto = repository.getRockDetail(incomingRockId)
+                val rockDetail: RockDetailDto = repository.getRockDetail(rockId)
                 updateUIWithDetails(rockDetail)
             } catch (e: Exception) {
                 Log.e("RockDetailActivity", "Failed to load details", e)
@@ -96,6 +104,17 @@ class RockDetailActivity : AppCompatActivity() {
                 toggleFavorite()
                 true
             }
+            R.id.action_edit_rock -> {
+                val intent = Intent(this, AddRockActivity::class.java).apply {
+                    putExtra("ROCK_ID", currentRockId)
+                }
+                startActivity(intent)
+                true
+            }
+            R.id.action_delete_rock -> {
+                confirmDeleteRock()
+                true
+            }
             R.id.action_view_favorites -> {
                 val intent = Intent(this, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -110,6 +129,62 @@ class RockDetailActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun confirmDeleteRock() {
+        val rockId = currentRockId ?: return
+        val title = currentRockTitle ?: ""
+
+        val container = android.widget.FrameLayout(this)
+        val input = android.widget.EditText(this).apply {
+            hint = "Escribe el nombre aquí"
+            setSingleLine(true)
+        }
+        val params = android.widget.FrameLayout.LayoutParams(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        val marginInDp = 24
+        val scale = resources.displayMetrics.density
+        val marginInPx = (marginInDp * scale + 0.5f).toInt()
+        params.setMargins(marginInPx, 0, marginInPx, 0)
+        input.layoutParams = params
+        container.addView(input)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("¿Eliminar espécimen?")
+            .setMessage("Esta acción es permanente y eliminará la muestra del servidor de forma definitiva.\n\nPara confirmar la eliminación, escribe el nombre de la roca exactamente como aparece: \"$title\"")
+            .setView(container)
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Eliminar") { _, _ ->
+                lifecycleScope.launch {
+                    try {
+                        val success = repository.deleteSample(rockId)
+                        if (success) {
+                            Toast.makeText(this@RockDetailActivity, "Muestra eliminada exitosamente", Toast.LENGTH_SHORT).show()
+                            finish()
+                        } else {
+                            Toast.makeText(this@RockDetailActivity, "Error al eliminar la muestra", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this@RockDetailActivity, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+            .create()
+
+        dialog.show()
+
+        val deleteBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        deleteBtn.isEnabled = false
+
+        input.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                deleteBtn.isEnabled = s?.toString() == title
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
     }
 
     private fun toggleFavorite() {

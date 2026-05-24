@@ -90,6 +90,15 @@ class RocksListFragment : Fragment() {
         loadRocks()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (showingFavorites) {
+            showFavorites()
+        } else {
+            loadRocks()
+        }
+    }
+
     /**
      * The menu with "Favorites" and "Logout" is set up using a MenuProvider.
      */

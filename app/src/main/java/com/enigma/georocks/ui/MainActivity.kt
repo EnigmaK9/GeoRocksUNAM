@@ -15,6 +15,8 @@ import com.enigma.georocks.databinding.ActivityMainBinding
 import com.enigma.georocks.ui.activities.LoginActivity
 import com.enigma.georocks.ui.fragments.FavoriteRocksFragment
 import com.enigma.georocks.ui.fragments.RocksListFragment
+import com.enigma.georocks.ui.fragments.FeatureLauncherFragment
+import com.enigma.georocks.ui.fragments.GraphsFragment
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -30,17 +32,41 @@ class MainActivity : AppCompatActivity() {
         // Retrieve the RockRepository from GeoRocksApp
         repository = (application as GeoRocksApp).repository
 
-        // If no saved state is present, decide which fragment to show based on the intent
-        if (savedInstanceState == null) {
-            val showFavorites = intent.getBooleanExtra("SHOW_FAVORITES", false)
-            val fragment = if (showFavorites) {
-                FavoriteRocksFragment()
-            } else {
-                RocksListFragment()
+        // Setup bottom navigation listener
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            val fragment = when (item.itemId) {
+                R.id.navigation_rocks -> {
+                    supportActionBar?.title = "GeoRocks - Rocas"
+                    RocksListFragment()
+                }
+                R.id.navigation_launcher -> {
+                    supportActionBar?.title = "GeoRocks - Lanzador"
+                    FeatureLauncherFragment()
+                }
+                R.id.navigation_graphs -> {
+                    supportActionBar?.title = "GeoRocks - Estadísticas"
+                    GraphsFragment()
+                }
+                R.id.navigation_favorites -> {
+                    supportActionBar?.title = "GeoRocks - Favoritas"
+                    FavoriteRocksFragment()
+                }
+                else -> RocksListFragment()
             }
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit()
+            true
+        }
+
+        // If no saved state is present, decide which fragment to show based on the intent
+        if (savedInstanceState == null) {
+            val showFavorites = intent.getBooleanExtra("SHOW_FAVORITES", false)
+            if (showFavorites) {
+                binding.bottomNavigation.selectedItemId = R.id.navigation_favorites
+            } else {
+                binding.bottomNavigation.selectedItemId = R.id.navigation_rocks
+            }
         }
 
         // Optionally, a quick log or demonstration can be placed here
@@ -97,5 +123,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun selectTab(tabId: Int) {
+        binding.bottomNavigation.selectedItemId = tabId
     }
 }
