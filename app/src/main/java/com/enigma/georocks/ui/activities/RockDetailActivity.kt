@@ -218,8 +218,13 @@ class RockDetailActivity : AppCompatActivity() {
         favoriteMenuItem?.let { item ->
             if (favorited) {
                 item.setIcon(R.drawable.ic_favorite_filled)
+                item.icon?.setTint(androidx.core.content.ContextCompat.getColor(this, android.R.color.holo_red_dark))
             } else {
                 item.setIcon(R.drawable.ic_favorite_border)
+                val typedValue = android.util.TypedValue()
+                theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
+                val color = typedValue.data
+                item.icon?.setTint(color)
             }
         }
     }
@@ -231,12 +236,23 @@ class RockDetailActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun parseMarkdownToHtml(markdown: String?): android.text.Spanned {
+        if (markdown.isNullOrBlank()) return android.text.SpannableString("")
+        var formatted = markdown
+        val boldRegex = "\\*\\*(.*?)\\*\\*".toRegex()
+        formatted = boldRegex.replace(formatted) { matchResult ->
+            "<b>${matchResult.groupValues[1]}</b>"
+        }
+        formatted = formatted.replace("\n", "<br/>")
+        return androidx.core.text.HtmlCompat.fromHtml(formatted, androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY)
+    }
+
     private fun updateUIWithDetails(rockDetail: RockDetailDto) {
         currentRockTitle = rockDetail.title
         currentRockThumbnail = rockDetail.image
 
         binding.tvRockTitle.text = rockDetail.title ?: getString(R.string.unknown_title)
-        binding.tvRockDescription.text = rockDetail.longDesc ?: getString(R.string.no_description_available)
+        binding.tvRockDescription.text = parseMarkdownToHtml(rockDetail.longDesc ?: getString(R.string.no_description_available))
         binding.tvRockType.text = rockDetail.aMemberOf ?: getString(R.string.unknown_type)
         binding.tvRockColor.text = rockDetail.color ?: getString(R.string.unknown_color)
 

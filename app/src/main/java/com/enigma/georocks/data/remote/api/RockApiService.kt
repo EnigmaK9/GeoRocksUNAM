@@ -1,5 +1,6 @@
 package com.enigma.georocks.data.remote.api
 
+import com.enigma.georocks.data.remote.model.LocationResponseDto
 import com.enigma.georocks.data.remote.model.SampleCreateRequestDto
 import com.enigma.georocks.data.remote.model.SampleResponseDto
 import com.enigma.georocks.data.remote.model.TokenResponseDto
@@ -15,6 +16,10 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface RockApiService {
+
+    // Endpoint to get the list of locations
+    @GET("locations/")
+    suspend fun getLocations(): List<LocationResponseDto>
 
     // Endpoint to get the list of rock samples
     @GET("samples/")

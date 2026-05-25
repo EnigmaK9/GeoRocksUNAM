@@ -17,6 +17,9 @@ interface FavoriteRockDao {
     @Delete
     suspend fun deleteFavorite(rock: FavoriteRockEntity)
 
+    @Query("DELETE FROM favorite_rocks WHERE rockId = :rockId")
+    suspend fun deleteFavoriteById(rockId: String)
+
     @Query("SELECT * FROM favorite_rocks WHERE rockId = :rockId LIMIT 1")
     suspend fun getFavoriteById(rockId: String): FavoriteRockEntity?
 

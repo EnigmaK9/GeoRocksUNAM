@@ -12,6 +12,7 @@ import com.enigma.georocks.databinding.FragmentFeatureLauncherBinding
 import com.enigma.georocks.ui.MainActivity
 import com.enigma.georocks.ui.activities.InfoActivity
 import com.enigma.georocks.ui.activities.AddRockActivity
+import com.enigma.georocks.ui.activities.LocationsActivity
 
 class FeatureLauncherFragment : Fragment() {
 
@@ -35,9 +36,9 @@ class FeatureLauncherFragment : Fragment() {
             (activity as? MainActivity)?.selectTab(R.id.navigation_rocks)
         }
 
-        // Card 2: Maps Launcher -> show Toast
+        // Card 2: Maps Launcher -> launch LocationsActivity
         binding.cardMapsLauncher.setOnClickListener {
-            Toast.makeText(requireContext(), "Geolocalización y mapas en desarrollo", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), LocationsActivity::class.java))
         }
 
         // Card 3: Info Launcher -> launch InfoActivity

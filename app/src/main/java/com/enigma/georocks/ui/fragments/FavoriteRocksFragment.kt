@@ -16,14 +16,31 @@ import com.enigma.georocks.databinding.FragmentFavoriteRocksBinding
 import com.enigma.georocks.ui.adapters.FavoriteRocksAdapter
 import com.enigma.georocks.ui.activities.RockDetailActivity
 import com.enigma.georocks.ui.viewmodels.FavoriteRocksViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.enigma.georocks.application.GeoRocksApp
+
+class FavoriteRocksViewModelFactory(
+    private val favoriteRepository: com.enigma.georocks.data.db.FavoriteRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(FavoriteRocksViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return FavoriteRocksViewModel(favoriteRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
 class FavoriteRocksFragment : Fragment() {
 
     private var _binding: FragmentFavoriteRocksBinding? = null
     private val binding get() = _binding!!
 
-    // Initialize the ViewModel
-    private val viewModel: FavoriteRocksViewModel by viewModels()
+    // Initialize the ViewModel using our custom Factory
+    private val viewModel: FavoriteRocksViewModel by viewModels {
+        FavoriteRocksViewModelFactory(getFavoriteRepository())
+    }
 
     private lateinit var adapter: FavoriteRocksAdapter
 
@@ -83,4 +100,7 @@ class FavoriteRocksFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    private fun getFavoriteRepository() =
+        (requireActivity().application as GeoRocksApp).favoriteRepository
 }

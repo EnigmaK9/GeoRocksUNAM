@@ -7,6 +7,7 @@ import com.enigma.georocks.data.db.FavoriteRockEntity
 import com.enigma.georocks.data.remote.api.RockApiService
 import com.enigma.georocks.data.remote.model.RockDetailDto
 import com.enigma.georocks.data.remote.model.RockDto
+import com.enigma.georocks.data.remote.model.LocationResponseDto
 import com.enigma.georocks.data.remote.model.SampleCreateRequestDto
 import com.enigma.georocks.data.remote.model.SampleResponseDto
 import com.enigma.georocks.data.remote.model.TokenResponseDto
@@ -250,12 +251,7 @@ class RockRepository(
 
     // Remove a rock from favorites using RockDto
     suspend fun removeFromFavorites(rockDto: RockDto) = withContext(Dispatchers.IO) {
-        val entity = FavoriteRockEntity(
-            rockId = rockDto.id,
-            title = null,        // Title can be set to null or retained based on preference
-            thumbnail = null     // Thumbnail can be set to null or retained based on preference
-        )
-        favoriteRockDao.deleteFavorite(entity)
+        favoriteRockDao.deleteFavoriteById(rockDto.id)
     }
 
     // Check if a rock is favorited
@@ -299,6 +295,24 @@ class RockRepository(
             Triple(total, cutPercentage, thinPercentage)
         } catch (e: Exception) {
             Triple(0, 0, 0)
+        }
+    }
+
+    // Fetch all collection locations from the FastAPI backend
+    suspend fun getLocations(): List<LocationResponseDto> = withContext(Dispatchers.IO) {
+        try {
+            apiService.getLocations()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    // Fetch raw list of samples for locations matching
+    suspend fun getRocksStatisticsSamples(): List<SampleResponseDto> = withContext(Dispatchers.IO) {
+        try {
+            apiService.getRocks()
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 

@@ -64,6 +64,10 @@
         <activity
             android:name=".ui.activities.AddRockActivity"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.activities.LocationsActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

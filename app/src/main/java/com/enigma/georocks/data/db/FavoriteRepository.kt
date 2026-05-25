@@ -23,12 +23,7 @@ class FavoriteRepository @Inject constructor(private val dao: FavoriteRockDao) {
 
     // Removes a rock from favorites
     suspend fun removeFromFavorites(rock: RockDto) = withContext(Dispatchers.IO) {
-        val entity = FavoriteRockEntity(
-            rockId = rock.id,
-            title = null,        // Title can be set to null or retained based on preference
-            thumbnail = null     // Thumbnail can be set to null or retained based on preference
-        )
-        dao.deleteFavorite(entity)
+        dao.deleteFavoriteById(rock.id)
     }
 
     // Checks if a rock is favorited
